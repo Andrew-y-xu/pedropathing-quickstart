@@ -6,7 +6,6 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.follower.FollowerConstants;
 import com.pedropathing.ftc.FollowerBuilder;
 import com.pedropathing.ftc.drivetrains.MecanumConstants;
-import com.pedropathing.ftc.localization.Encoder;
 import com.pedropathing.ftc.localization.constants.PinpointConstants;
 import com.pedropathing.paths.PathConstraints;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
@@ -14,11 +13,11 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .mass(16.3)
-            .forwardZeroPowerAcceleration(-35.47757987443447)
-            .lateralZeroPowerAcceleration(-62.70762380266791)
+            .mass(10.4)
+            .forwardZeroPowerAcceleration(-37.50473470344061)
+            .lateralZeroPowerAcceleration(-69.9432918300914)
             .translationalPIDFCoefficients(new PIDFCoefficients(
-                    0.03,
+                    0.09,
                     0,
                     0,
                     0.015
@@ -67,13 +66,13 @@ public class Constants {
             .leftRearMotorDirection(DcMotorSimple.Direction.REVERSE)
             .rightFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
             .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD)
-            .xVelocity(55.85565858375369)
-            .yVelocity(42.8099677619033);
+            .xVelocity(74.9151558463029)
+            .yVelocity(60.13714070958416);
 
     public static PinpointConstants localizerConstants = new PinpointConstants()
-            .forwardPodY(-5.31496063)
-            .strafePodX(-6.69291339)
-            .forwardEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD);
+            .forwardPodY(0.984252)
+            .strafePodX(-0.984252)
+            .forwardEncoderDirection(GoBildaPinpointDriver.EncoderDirection.REVERSED);
     public static PathConstraints pathConstraints = new PathConstraints(
             0.995,
             0.1,
