@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
-@Autonomous(name="AutoFarrrrr")
+@Autonomous(name="The Other Auto")
 public class AutoFarrrr extends OpMode {
 
     // (Optional) Pedro follower just for pose/drawing – not used for movement

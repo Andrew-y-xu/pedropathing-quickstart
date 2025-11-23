@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
-@Autonomous(name="Blue Far Auto")
+@Autonomous(name="Shooting Area Auto")
 public class Blue_Far_Auto extends OpMode {
 
     // Pedro follower
