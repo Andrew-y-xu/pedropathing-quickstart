@@ -34,6 +34,8 @@ public class decodeteleop extends OpMode {
     Servo liftservo;
     Servo lift2servo;
     Servo lift3servo;
+
+//    Servo aimservo;
 //
 //    Servo convey;
 
@@ -47,14 +49,16 @@ public class decodeteleop extends OpMode {
 
     ElapsedTime timer = new ElapsedTime();
 
+    private boolean rtWasPressed = false;
+    private boolean ltWasPressed = false;
 
 
-
+    double deadzone = 0.05;
     private boolean jerkRunning = false;
     private double jerkStartTime = 0;
     private ElapsedTime jerkTimer = new ElapsedTime();
 
-
+    private double clampValue = 0.25;
     private double value = 0;
     public double speed = 1.0;
 
@@ -95,6 +99,7 @@ public class decodeteleop extends OpMode {
         liftservo = hardwareMap.get(Servo.class, "lift2");
         lift2servo = hardwareMap.get(Servo.class, "lift1");
         lift3servo = hardwareMap.get(Servo.class, "lift3");
+ //       aimservo = hardwareMap.get(Servo.class, "aimservo");
 //        convey = hardwareMap.get(Servo.class, "convey");
 
         testmotor.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -103,7 +108,7 @@ public class decodeteleop extends OpMode {
         liftservo.setPosition(0.05); //0.05
         lift2servo.setPosition(0.745); //0.745
         lift3servo.setPosition(0.1);
-
+ //       aimservo.setPosition(0.5);
 
 
         telemetry.addData("Status", "Initialized");
@@ -288,21 +293,65 @@ public class decodeteleop extends OpMode {
             intakemotor.setPower(-1.0);
         }
 
-
+///***************************/
+///**** Clamp Servo – gamepad2 RIGHT stick smooth control ***/
+///***************************/
+//
+//// FTC Y stick is inverted
+//        double rightStickInput = -gamepad2.right_stick_y;
+//
+//// Deadzone check
+//        if (Math.abs(rightStickInput) > deadzone) {
+//            double servoRampRate = 0.005; // smaller than motor for precision
+//            clampValue += rightStickInput * servoRampRate;
+//        }
+//
+//// Clamp servo range to [0.25, 0.5]
+//        clampValue = Math.max(0.25, Math.min(clampValue, 0.5));
+//
+//// Apply to servo
+//        aimservo.setPosition(clampValue);
 
 
         // Clamp value to [0.0, 1.0]
-        value = Math.max(0.0, Math.min(value, 1.0));
 
-        //lift servo
-        if (gamepad2.left_bumper) {
-            value = 0.65;
-        } else if (gamepad2.right_bumper) {
-            value = 0;
-        } else if (gamepad2.a) {
-            value = 0.4;
+/***************************/
+/**** Dingus Shooter (incremental + presets override) ***/
+/***************************/
+
+// --- Incremental step controls (tap) ---
+        double step = 0.05;
+
+// Treat triggers like buttons (press past threshold)
+        boolean rtPressed = gamepad2.right_trigger > 0.5;
+        boolean ltPressed = gamepad2.left_trigger  > 0.5;
+
+// Rising edge: step only once per press
+        if (rtPressed && !rtWasPressed) {
+            value += step;
         }
+        if (ltPressed && !ltWasPressed) {
+            value -= step;
+        }
+
+// Save states for next loop
+        rtWasPressed = rtPressed;
+        ltWasPressed = ltPressed;
+
+// --- Presets OVERRIDE incremental ---
+        if (gamepad2.left_bumper) {
+            value = 0.70;
+        } else if (gamepad2.right_bumper) {
+            value = 0.0;
+        }
+
+// Clamp AFTER everything, then apply
+        value = Math.max(0.0, Math.min(value, 1.0));
         testmotor.setPower(value);
+
+// Telemetry
+
+
 
 
 //
@@ -325,8 +374,8 @@ public class decodeteleop extends OpMode {
 //        }
 
         // Telemetry feedback
-        telemetry.addData("Servo Position", value);
         telemetry.addData( "Timer (s)", timer.seconds());
+        telemetry.addData("Shooter Power (0-1)", value);
         telemetry.update();
     }
     private boolean ifPressed(boolean button) {

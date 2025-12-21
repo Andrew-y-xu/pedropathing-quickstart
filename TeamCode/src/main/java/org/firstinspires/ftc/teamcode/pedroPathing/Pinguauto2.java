@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-@Autonomous(name="Meet 2 Red Autonomous")
+@Autonomous(name="Meet 2 Blue Autonomous")
 public class Pinguauto2 extends OpMode {
 
     // Optional follower (pose/drawing only)

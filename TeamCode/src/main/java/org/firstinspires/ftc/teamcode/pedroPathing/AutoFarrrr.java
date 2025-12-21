@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-@Autonomous(name="Meet 2 Blue Autonomous")
+@Autonomous(name="Meet 2 Red Autonomous")
 public class AutoFarrrr extends OpMode {
 
     // Optional follower (pose/drawing only)
@@ -46,7 +46,7 @@ public class AutoFarrrr extends OpMode {
 
     // Initial move (backward)
     private static final double INITIAL_BACK_POWER = -0.4;
-    private static final double INITIAL_BACK_TIME  = 1.5;
+    private static final double INITIAL_BACK_TIME  = 1.1;
 
     // Final move (strafe)
     private static final double FINAL_STRAFE_POWER = 0.4;   // + = strafe right (usually)
