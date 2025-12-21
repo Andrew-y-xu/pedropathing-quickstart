@@ -9,8 +9,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-@Autonomous(name="Meet 2 Blue Autonomous")
-public class AutoFarrrr extends OpMode {
+@Autonomous(name="Meet 2 Red Autonomous")
+public class Pinguauto2 extends OpMode {
 
     // Optional follower (pose/drawing only)
     public static Follower follower;
@@ -49,7 +49,7 @@ public class AutoFarrrr extends OpMode {
     private static final double INITIAL_BACK_TIME  = 1.5;
 
     // Final move (strafe)
-    private static final double FINAL_STRAFE_POWER = 0.4;   // + = strafe right (usually)
+    private static final double FINAL_STRAFE_POWER = -0.4;   // + = strafe right (usually)
     private static final double FINAL_STRAFE_TIME  = 1.0;
 
     // ─── YOUR SERVO CONSTANTS (UNCHANGED) ───

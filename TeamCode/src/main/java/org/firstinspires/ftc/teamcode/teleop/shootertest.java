@@ -24,22 +24,22 @@ import java.util.ArrayList;
 @TeleOp(name="Shooter Test", group="Test")
 public class shootertest extends OpMode {
 
-    DcMotor testmotor;
-    CRServo convey;
-    private Servo liftservo;
+    DcMotorEx testmotor;
 
-    private double value = 0.685;
+
+//    CRServo convey;
+//    private Servo liftservo;
+
+    private double value = 0;
 
     private ElapsedTime debounceTimer = new ElapsedTime();
 
     @Override
     public void init() {
-         testmotor = hardwareMap.dcMotor.get("testemotor");
-
-        liftservo = hardwareMap.get(Servo.class, "lift");
-        convey = hardwareMap.get(CRServo.class, "convey");
-
-        testmotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        testmotor = hardwareMap.get(DcMotorEx.class, "testemotor");
+        testmotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        testmotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        testmotor.setDirection(DcMotorEx.Direction.REVERSE);
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -50,43 +50,43 @@ public class shootertest extends OpMode {
         // Debounce input to prevent too frequent changes
         if (debounceTimer.milliseconds() > 100) {
             if (gamepad1.x) {
-                value += 0.005;
+                value += 25;
                 debounceTimer.reset();
             } else if (gamepad1.y) {
-                value -= 0.005;
+                value -= 25;
                 debounceTimer.reset();
             }
         }
 
-        if (gamepad1.a) {
-            liftservo.setPosition(0.325);
-        }
-        else {
-            liftservo.setPosition(0.685);
-        }
-
-        // Clamp value to [0.0, 1.0]
-        value = Math.max(0.0, Math.min(value, 1.0));
+//        if (gamepad1.a) {
+//            liftservo.setPosition(0.325);
+//        }
+//        else {
+//            liftservo.setPosition(0.685);
+//        }
+//
+//        // Clamp value to [0.0, 1.0]
+//        value = Math.max(0.0, Math.min(value, 1.0));
 
         // Reset to default position
         if (gamepad1.left_bumper) {
-            value = 1;
+            value = 100;
         } else if (gamepad1.right_bumper) {
-            value = 0;
+            value = 200;
         } else if (gamepad1.back) {
-            value = 0.5;
+            value = 300;
         }
 
-        if (gamepad1.b) {
-            convey.setPower(0.5);
-        } else if (gamepad1.start) {
-            convey.setPower(-0.5);
-        } else {
-            convey.setPower(0.0);
-        }
+//        if (gamepad1.b) {
+//            convey.setPower(0.5);
+//        } else if (gamepad1.start) {
+//            convey.setPower(-0.5);
+//        } else {
+//            convey.setPower(0.0);
+//        }
 
         // Apply servo position
-        testmotor.setPower(value);
+        testmotor.setVelocity(value);
 
         // Telemetry feedback
         telemetry.addData("Servo Position", value);

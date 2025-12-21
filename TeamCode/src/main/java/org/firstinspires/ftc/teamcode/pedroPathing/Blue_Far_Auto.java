@@ -40,7 +40,7 @@ public class Blue_Far_Auto extends OpMode {
     private boolean path2Started = false;
 
     // Tunable constants
-    private static final double FLYWHEEL_POWER = -0.55;   // flywheel spin power
+    private static final double FLYWHEEL_POWER = -0.53;   // flywheel spin power
     private static final double CHARGE_TIME   = 4.0;     // seconds to "charge" flywheel before first shot
 
     private static final double LIFT_UP_POS   = 0.325;

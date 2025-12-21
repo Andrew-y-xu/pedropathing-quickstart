@@ -43,10 +43,10 @@ public class servotest extends OpMode {
         // Debounce input to prevent too frequent changes
         if (debounceTimer.milliseconds() > 100) {
             if (gamepad1.x) {
-                value += 0.005;
+                value += 0.1;
                 debounceTimer.reset();
             } else if (gamepad1.y) {
-                value -= 0.005;
+                value -= 0.1;
                 debounceTimer.reset();
             }
         }
