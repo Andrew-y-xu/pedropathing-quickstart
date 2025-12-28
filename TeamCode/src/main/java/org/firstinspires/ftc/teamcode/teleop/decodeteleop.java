@@ -13,7 +13,18 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
+import com.qualcomm.hardware.limelightvision.LLStatus;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+
+import java.util.List;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -46,7 +57,8 @@ public class decodeteleop extends OpMode {
 
     private boolean cycleRunning = false;
     private double cycleStartTime = 0;
-
+    DcMotor poopeemotorey;
+    private Limelight3A lookylookyseesee;
     ElapsedTime timer = new ElapsedTime();
 
     private boolean rtWasPressed = false;
@@ -74,7 +86,13 @@ public class decodeteleop extends OpMode {
 
         intakemotor = hardwareMap.dcMotor.get("intakemotor");
 
+        poopeemotorey = hardwareMap.get(DcMotor.class, "poopeemotorey");
+        lookylookyseesee = hardwareMap.get(Limelight3A.class, "lookylookyseesee");
 
+        telemetry.setMsTransmissionInterval(11);
+
+        lookylookyseesee.pipelineSwitch(0);
+        lookylookyseesee.start();
         motor_frontLeft.setDirection(DcMotor.Direction.REVERSE);
         motor_backRight.setDirection(DcMotor.Direction.REVERSE);
         motor_frontRight.setDirection(DcMotor.Direction.FORWARD);
@@ -350,8 +368,31 @@ public class decodeteleop extends OpMode {
         testmotor.setPower(value);
 
 // Telemetry
+/***************************/
+/**** Do I see gangster rapper? ***/
+/***************************/
 
+        LLResult resultsofpooe = lookylookyseesee.getLatestResult();
+        boolean doesiseeitfoundboi = false;
 
+        if (resultsofpooe != null && resultsofpooe.isValid()) {
+            List<LLResultTypes.FiducialResult> fiducialResults2 = resultsofpooe.getFiducialResults();
+            for (LLResultTypes.FiducialResult fr : fiducialResults2) {
+//                Double TxValue = resultsofpooe.getTx();
+                double tx = fr.getTargetXDegrees();
+                if(fr.getFiducialId()==24) {
+                    poopeemotorey.setPower(-0.018 * tx); //TxValue
+                    doesiseeitfoundboi = true;
+                    break;
+                }
+            }
+
+        }
+        if (!doesiseeitfoundboi) {
+            poopeemotorey.setPower(0);
+            telemetry.addData("Limelight", "No data available");
+        }
+        telemetry.update();
 
 
 //
