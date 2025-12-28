@@ -33,11 +33,10 @@ public class Meet2BlueAuto extends OpMode{
     private Follower follower;
     private Timer pathTimer, opmodeTimer;
     private int pathState;
-    private Blue_Auto.Paths paths;
-    public static class Paths {
-        public PathChain Path1, Path2, Path3, Path4, Path5,
-                Path6, Path7, Path8, Path9, Path10;
+    private Paths paths;
 
+    public static class Paths {
+        public PathChain Path1, Path2, Path3, Path4, Path5, Path6, Path7, Path8, Path9, Path10, Path11, Path12, Path13;
         public Paths(Follower follower) {
             Path1 = follower.pathBuilder()
                     .addPath(new BezierLine(
@@ -129,11 +128,38 @@ public class Meet2BlueAuto extends OpMode{
                             Math.toRadians(180),
                             Math.toRadians(144.5))
                     .build();
+
+            Path11 = follower.pathBuilder()
+                    .addPath(new BezierCurve(
+                            new Pose(38.500, 104.000),
+                            new Pose(80.000, 20.000),
+                            new Pose(9.000, 9.000)))
+                    .setLinearHeadingInterpolation(
+                            Math.toRadians(144.5),
+                            Math.toRadians(180))
+                    .build();
+
+            Path12 = follower.pathBuilder()
+                    .addPath(new BezierLine(
+                            new Pose(20.000, 9.000),
+                            new Pose(9.000, 9.000)))
+                    .setTangentHeadingInterpolation()
+                    .build();
+
+            Path13 = follower.pathBuilder()
+                    .addPath(new BezierLine(
+                            new Pose(9.000, 9.000),
+                            new Pose(38.500, 104.000))
+                    )
+                    .setLinearHeadingInterpolation(
+                            Math.toRadians(180),
+                            Math.toRadians(144.5))
+                    .build();
         }
     }
     public void init(){
         follower = Constants.createFollower(hardwareMap);
-        paths = new Blue_Auto.Paths(follower);
+        paths = new Meet2BlueAuto.Paths(follower);
 
         follower.setStartingPose(new Pose(20.5, 122, Math.toRadians(137.5)));
 
@@ -388,11 +414,34 @@ public class Meet2BlueAuto extends OpMode{
 
             case 10:
                 shooterUpdates();
+                if(!follower.isBusy()) {
+                    follower.followPath(paths.Path11, true);
+                    setPathState(11);
+                }
+                break;
+
+            case 11:
+                intake.setPower(1);
+                if(!follower.isBusy()) {
+                    follower.followPath(paths.Path12, true);
+                    setPathState(12);
+                }
+                break;
+
+            case 12:
+                intake.setPower(0);
+                if(!follower.isBusy()) {
+                    follower.followPath(paths.Path13,true);
+                    setPathState(13);
+                }
+                break;
+
+            case 13:
                 if (!follower.isBusy()) {
                     setPathState(-1); // finished
                 }
                 break;
-        }
+       }
     }
     private void setPathState(int newState) {
         pathState = newState;

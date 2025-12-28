@@ -33,7 +33,7 @@ public class Meet2RedAuto extends OpMode{
     private Follower follower;
     private Timer pathTimer, opmodeTimer;
     private int pathState;
-    private Blue_Auto.Paths paths;
+    private Paths paths;
     public static class Paths {
 
         public PathChain Path1;
@@ -46,7 +46,9 @@ public class Meet2RedAuto extends OpMode{
         public PathChain Path8;
         public PathChain Path9;
         public PathChain Path10;
-
+        public PathChain Path11;
+        public PathChain Path12;
+        public PathChain Path13;
         public Paths(Follower follower) {
             Path1 = follower
                     .pathBuilder()
@@ -149,14 +151,37 @@ public class Meet2RedAuto extends OpMode{
                     )
                     .setTangentHeadingInterpolation()
                     .build();
+            Path11 = follower.pathBuilder()
+                    .addPath(new BezierCurve(
+                            new Pose(105.500, 104.000),
+                            new Pose(64.000, 20.000),
+                            new Pose(135.000, 9.000)))
+                    .setLinearHeadingInterpolation(
+                            Math.toRadians(35.5),
+                            Math.toRadians(0))
+                    .build();
+
+            Path12 = follower.pathBuilder()
+                    .addPath(new BezierLine(
+                            new Pose(124.000, 9.000),
+                            new Pose(135.000, 9.000)))
+                    .setTangentHeadingInterpolation()
+                    .build();
+
+            Path13 = follower.pathBuilder()
+                    .addPath(new BezierLine(
+                            new Pose(135.000, 9.000),
+                            new Pose(105.500, 104.000))
+                    )
+                    .setLinearHeadingInterpolation(
+                            Math.toRadians(0),
+                            Math.toRadians(35.5))
+                    .build();
         }
     }
     public void init(){
         follower = Constants.createFollower(hardwareMap);
-        paths = new Blue_Auto.Paths(follower);
-
         follower.setStartingPose(new Pose(20.5, 122, Math.toRadians(137.5)));
-
         pathTimer = new Timer();
         opmodeTimer = new Timer();
         intake=hardwareMap.get(DcMotor.class,"intake");
