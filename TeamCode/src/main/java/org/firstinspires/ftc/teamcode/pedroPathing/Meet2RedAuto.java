@@ -239,24 +239,27 @@ public class Meet2RedAuto extends OpMode{
                     slot[first].setPosition(0.685);
                     shots--;
                     wait(200);
-                    slot[first].setPosition(0.325);
+                    slot[first].setPosition(0.505);
                 }
                 if(indexer.get(second)!='n'){
                     slot[second].setPosition(0.685);
                     shots--;
                     wait(200);
-                    slot[second].setPosition(0.325);
+                    slot[second].setPosition(0.505);
                 }
                 if(indexer.get(third)!='n'){
                     slot[third].setPosition(0.685);
                     shots--;
                     wait(200);
-                    slot[third].setPosition(0.325);
+                    slot[third].setPosition(0.505);
                 }
                 if(shots>0){
                     setState(0);
                 }
                 flywheel.setPower(0);
+                slot[first].setPosition(0.325);
+                slot[second].setPosition(0.325);
+                slot[third].setPosition(0.325);
         }
     }
     public void setIndexer(Map<Integer, Character> indexer) {
