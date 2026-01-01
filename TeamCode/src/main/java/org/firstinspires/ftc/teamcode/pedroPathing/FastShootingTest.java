@@ -15,17 +15,20 @@ public class FastShootingTest extends OpMode {
     }
     public void loop(){
         if(gamepad1.a){
-            flywheel.setPower(1-flywheel.getPower());
+            flywheel.setPower(1);
+        }
+        else if(gamepad1.y){
+            flywheel.setPower(0);
         }
         if(gamepad1.b){
-            slot1.setPosition(0.685);
-            slot1.setPosition(0.505);
-            slot2.setPosition(0.685);
-            slot2.setPosition(0.505);
-            slot3.setPosition(0.685);
-            slot3.setPosition(0.505);
-            slot1.setPosition(0.325);
-            slot2.setPosition(0.325);
+            slot1.setPosition(0.3);
+            slot1.setPosition(0.5225);
+            slot2.setPosition(0.55);
+            slot2.setPosition(0.3);
+            slot3.setPosition(0.55);
+            slot3.setPosition(0.325);
+            slot1.setPosition(0.05);
+            slot2.setPosition(0.745);
             slot3.setPosition(0.325);
         }
     }
