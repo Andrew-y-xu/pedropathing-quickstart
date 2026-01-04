@@ -35,7 +35,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import java.util.ArrayList;
-
+@Disabled
 @TeleOp(name="Decode Teleop M1")
 public class decodeteleop extends OpMode {
 
