@@ -13,9 +13,9 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .mass(10.4)
-            .forwardZeroPowerAcceleration(-37.50473470344061)
-            .lateralZeroPowerAcceleration(-69.9432918300914)
+            .mass(11.5)
+            .forwardZeroPowerAcceleration(-32.86359205008826)
+            .lateralZeroPowerAcceleration(-61.28281361942975)
             .translationalPIDFCoefficients(new PIDFCoefficients(
                     0.09,
                     0,
@@ -65,9 +65,9 @@ public class Constants {
             .leftFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
             .leftRearMotorDirection(DcMotorSimple.Direction.REVERSE)
             .rightFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
-            .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD)
-            .xVelocity(74.9151558463029)
-            .yVelocity(60.13714070958416);
+            .rightRearMotorDirection(DcMotorSimple.Direction.REVERSE)
+            .xVelocity(77.23524919645052)
+            .yVelocity(57.25985068974533);
 
     public static PinpointConstants localizerConstants = new PinpointConstants()
             .forwardPodY(0.984252)

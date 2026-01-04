@@ -4,11 +4,15 @@ import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import com.pedropathing.util.Timer;
@@ -34,7 +38,13 @@ public class Meet2BlueAuto extends OpMode{
     private Timer pathTimer, opmodeTimer;
     private int pathState;
     private Paths paths;
-
+    double derivativeTx = 0;
+    private Limelight3A lookylookyseesee;
+    DcMotor poopeemotorey;
+    double lastTx = 0;
+    double lastTimeUpdated = 0;
+    double pPID = 0.04;
+    double dPID = 0.001;
     public static class Paths {
         public PathChain Path1, Path2, Path3, Path4, Path5, Path6, Path7, Path8, Path9, Path10, Path11, Path12, Path13;
         public Paths(Follower follower) {
@@ -181,6 +191,10 @@ public class Meet2BlueAuto extends OpMode{
         slot[0]=hardwareMap.get(Servo.class,"slot0");
         slot[1]=hardwareMap.get(Servo.class,"slot1");
         slot[2]=hardwareMap.get(Servo.class,"slot2");
+        poopeemotorey = hardwareMap.get(DcMotor.class, "poopeemotorey");
+        lookylookyseesee = hardwareMap.get(Limelight3A.class, "lookylookyseesee");
+        lookylookyseesee.pipelineSwitch(0);
+        lookylookyseesee.start();
     }
     @Override
     public void start() {
@@ -195,6 +209,29 @@ public class Meet2BlueAuto extends OpMode{
             autonomousPathUpdate();     // handles path transitions
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
+        }
+        LLResult resultsofpooe = lookylookyseesee.getLatestResult();
+        boolean doesiseeitfoundboi = false;
+
+        if (resultsofpooe != null && resultsofpooe.isValid()) {
+            List<LLResultTypes.FiducialResult> fiducialResults2 = resultsofpooe.getFiducialResults();
+            for (LLResultTypes.FiducialResult fr : fiducialResults2) {
+//                Double TxValue = resultsofpooe.getTx();
+                double tx = fr.getTargetXDegrees();
+                if(fr.getFiducialId()==24) {
+                    derivativeTx = 1000000000.0*(tx-lastTx)/(System.nanoTime()-lastTimeUpdated);
+                    poopeemotorey.setPower(pPID * tx + dPID * derivativeTx); //TxValue
+                    doesiseeitfoundboi = true;
+                    lastTx = tx;
+                    lastTimeUpdated = System.nanoTime();
+                    break;
+                }
+            }
+
+        }
+        if (!doesiseeitfoundboi) {
+            poopeemotorey.setPower(0);
+            telemetry.addData("Limelight", "No data available");
         }
     }
     public void shooterUpdates() throws InterruptedException {
