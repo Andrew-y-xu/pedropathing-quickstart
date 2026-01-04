@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import com.pedropathing.util.Timer;
+import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
+import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
 @Autonomous
 public class Meet2RedAuto extends OpMode{
@@ -45,6 +47,13 @@ public class Meet2RedAuto extends OpMode{
     double lastTimeUpdated = 0;
     double pPID = 0.04;
     double dPID = 0.001;
+    private static final String SENSOR_1_NAME = "Color1R";
+    private static final String SENSOR_2_NAME = "Color2R";
+    private static final String SENSOR_3_NAME = "Color3R";
+
+    private NormalizedColorSensor colorL;
+    private NormalizedColorSensor colorR;
+    private NormalizedColorSensor colorB;
     public static class Paths {
 
         public PathChain Path1;
@@ -215,6 +224,9 @@ public class Meet2RedAuto extends OpMode{
         lookylookyseesee = hardwareMap.get(Limelight3A.class, "lookylookyseesee");
         lookylookyseesee.pipelineSwitch(0);
         lookylookyseesee.start();
+        colorL = hardwareMap.get(NormalizedColorSensor.class, SENSOR_1_NAME);
+        colorR = hardwareMap.get(NormalizedColorSensor.class, SENSOR_2_NAME);
+        colorB = hardwareMap.get(NormalizedColorSensor.class, SENSOR_3_NAME);
     }
     @Override
     public void start() {
@@ -384,6 +396,46 @@ public class Meet2RedAuto extends OpMode{
     private void setState(int newState) {
         shooterState=newState;
         timer.resetTimer();
+    }
+    private char detectColor(NormalizedColorSensor sensor) {
+        NormalizedRGBA rgba = sensor.getNormalizedColors();
+
+        double r = clamp01(rgba.red);
+        double g = clamp01(rgba.green);
+        double b = clamp01(rgba.blue);
+
+        double intensity = r + g + b;
+        boolean brightEnough = intensity > 0.06;
+        boolean notBlownOut = intensity < 2.7;
+
+        double sum = Math.max(1e-6, intensity);
+        double rn = r / sum;
+        double gn = g / sum;
+        double bn = b / sum;
+
+        boolean isGreen =
+                brightEnough && notBlownOut &&
+                        gn > 0.45 &&
+                        gn > rn + 0.05 &&
+                        gn > bn + 0.05;
+
+        boolean isPurple =
+                brightEnough && notBlownOut &&
+                        rn > 0.20 &&
+                        bn > 0.40 &&
+                        gn < 0.35 &&
+                        Math.abs(rn - bn) < 0.30;
+
+        if (isGreen) {
+            return 'g';
+        } else if (isPurple) {
+            return 'p';
+        } else {
+            return 'n';
+        }
+    }
+    private double clamp01(float v) {
+        return Math.max(0.0, Math.min(1.0, v));
     }
     public static <K, V> int getKeyFromValueStream(Map<K, V> map, V value) {
         return map.entrySet().stream()
