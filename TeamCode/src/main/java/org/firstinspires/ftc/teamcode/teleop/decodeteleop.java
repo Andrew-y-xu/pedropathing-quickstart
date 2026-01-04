@@ -41,9 +41,9 @@ public class decodeteleop extends OpMode {
 
     DcMotor testmotor;
     DcMotor intakemotor;
-    NormalizedColorSensor didisensor;
-    NormalizedColorSensor didi2sensor;
-    NormalizedColorSensor didi3sensor;
+//    NormalizedColorSensor didisensor;
+//    NormalizedColorSensor didi2sensor;
+//    NormalizedColorSensor didi3sensor;
 
     DcMotorEx motor_frontLeft;
     DcMotorEx motor_frontRight;
@@ -141,9 +141,9 @@ public class decodeteleop extends OpMode {
 
         poopeemotorey = hardwareMap.get(DcMotor.class, "poopeemotorey");
         lookylookyseesee = hardwareMap.get(Limelight3A.class, "lookylookyseesee");
-        didisensor = hardwareMap.get(NormalizedColorSensor.class, "didisensor");
-        didi2sensor = hardwareMap.get(NormalizedColorSensor.class, "didi2sensor");
-        didi3sensor = hardwareMap.get(NormalizedColorSensor.class, "didi3sensor");
+//        didisensor = hardwareMap.get(NormalizedColorSensor.class, "didisensor");
+//        didi2sensor = hardwareMap.get(NormalizedColorSensor.class, "didi2sensor");
+//        didi3sensor = hardwareMap.get(NormalizedColorSensor.class, "didi3sensor");
 
         telemetry.setMsTransmissionInterval(11);
 
@@ -540,22 +540,22 @@ public class decodeteleop extends OpMode {
 /***************************/
 
 
-        NormalizedRGBA rgba1 = didisensor.getNormalizedColors();
-        NormalizedRGBA rgba2 = didi2sensor.getNormalizedColors();
-        NormalizedRGBA rgba3 = didi3sensor.getNormalizedColors();
-
-        colorsensoring.Result sensor1Result = colorsensoring.classify(rgba1);
-        colorsensoring.Result sensor2Result = colorsensoring.classify(rgba2);
-        colorsensoring.Result sensor3Result = colorsensoring.classify(rgba3);
-
-        registerToken(1, sensor1Result.isGreen, sensor1Result.isPurple);
-        registerToken(2, sensor2Result.isGreen, sensor2Result.isPurple);
-        registerToken(3, sensor3Result.isGreen, sensor3Result.isPurple);
-
-
-
-        telemetry.addData("G queue", greenQueue.toString());
-        telemetry.addData("P queue", purpleQueue.toString());
+//        NormalizedRGBA rgba1 = didisensor.getNormalizedColors();
+//        NormalizedRGBA rgba2 = didi2sensor.getNormalizedColors();
+//        NormalizedRGBA rgba3 = didi3sensor.getNormalizedColors();
+//
+//        colorsensoring.Result sensor1Result = colorsensoring.classify(rgba1);
+//        colorsensoring.Result sensor2Result = colorsensoring.classify(rgba2);
+//        colorsensoring.Result sensor3Result = colorsensoring.classify(rgba3);
+//
+//        registerToken(1, sensor1Result.isGreen, sensor1Result.isPurple);
+//        registerToken(2, sensor2Result.isGreen, sensor2Result.isPurple);
+//        registerToken(3, sensor3Result.isGreen, sensor3Result.isPurple);
+//
+//
+//
+//        telemetry.addData("G queue", greenQueue.toString());
+//        telemetry.addData("P queue", purpleQueue.toString());
 
 
 /***************************/
@@ -589,9 +589,9 @@ public class decodeteleop extends OpMode {
         telemetry.addData("GreenQ", greenQueue.toString());
         telemetry.addData("PurpleQ", purpleQueue.toString());
 
-        telemetry.addData("S1", "G:%b P:%b", sensor1Result.isGreen, sensor1Result.isPurple);
-        telemetry.addData("S2", "G:%b P:%b", sensor2Result.isGreen, sensor2Result.isPurple);
-        telemetry.addData("S3", "G:%b P:%b", sensor3Result.isGreen, sensor3Result.isPurple);
+//        telemetry.addData("S1", "G:%b P:%b", sensor1Result.isGreen, sensor1Result.isPurple);
+//        telemetry.addData("S2", "G:%b P:%b", sensor2Result.isGreen, sensor2Result.isPurple);
+//        telemetry.addData("S3", "G:%b P:%b", sensor3Result.isGreen, sensor3Result.isPurple);
         telemetry.addData( "Timer (s)", timer.seconds());
         telemetry.addData("Shooter Power (0-1)", value);
         telemetry.update();
