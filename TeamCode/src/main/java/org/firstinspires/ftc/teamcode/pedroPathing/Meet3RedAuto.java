@@ -8,9 +8,10 @@ import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DigitalChannel;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,18 +20,12 @@ import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
-@Autonomous
-public class Meet2RedAuto extends OpMode{
+@Disabled
+public class Meet3RedAuto extends OpMode{
     Map<Integer, Character> indexer = new HashMap<>();
     int shots=0;
     int randomizationState;
     Timer timer;
-    DigitalChannel pin0;
-    DigitalChannel pin1;
-    DigitalChannel pin2;
-    DigitalChannel pin3;
-    DigitalChannel pin4;
-    DigitalChannel pin5;
     DcMotor flywheel;
     Servo[] slot;
     int shooterState;
@@ -47,13 +42,15 @@ public class Meet2RedAuto extends OpMode{
     double lastTimeUpdated = 0;
     double pPID = 0.04;
     double dPID = 0.001;
-    private static final String SENSOR_1_NAME = "Color1R";
-    private static final String SENSOR_2_NAME = "Color2R";
-    private static final String SENSOR_3_NAME = "Color3R";
-
-    private NormalizedColorSensor colorL;
-    private NormalizedColorSensor colorR;
-    private NormalizedColorSensor colorB;
+//    private NormalizedColorSensor color1;
+    private NormalizedColorSensor color2;
+    private NormalizedColorSensor color3;
+    int state;
+    double serv1;
+    double serv2;
+    double serv3;
+    char two;
+    char three;
     public static class Paths {
 
         public PathChain Path1;
@@ -201,32 +198,31 @@ public class Meet2RedAuto extends OpMode{
     }
     public void init(){
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(20.5, 122, Math.toRadians(137.5)));
+        paths = new Meet3RedAuto.Paths(follower);
+        follower.setStartingPose(new Pose(123.5, 122, Math.toRadians(35.5)));
         pathTimer = new Timer();
         opmodeTimer = new Timer();
-        intake=hardwareMap.get(DcMotor.class,"intake");
+        timer = new Timer();
+        intake=hardwareMap.get(DcMotor.class,"intakemotor");
         telemetry.addLine("Initialized Blue Auto!");
         telemetry.update();
         indexer.put(0,'n');
         indexer.put(1,'n');
         indexer.put(2,'n');
-        pin0 = hardwareMap.digitalChannel.get("digital0");
-        pin1 = hardwareMap.digitalChannel.get("digital1");
-        pin2 = hardwareMap.digitalChannel.get("digital2");
-        pin3 = hardwareMap.digitalChannel.get("digital3");
-        pin4 = hardwareMap.digitalChannel.get("digital4");
-        pin5 = hardwareMap.digitalChannel.get("digital5");
-        poopeemotorey = hardwareMap.get(DcMotor.class, "poopeemotorey");
-        flywheel=hardwareMap.get(DcMotor.class,"flywheel");
-        slot[0]=hardwareMap.get(Servo.class,"slot0");
-        slot[1]=hardwareMap.get(Servo.class,"slot1");
-        slot[2]=hardwareMap.get(Servo.class,"slot2");
-        lookylookyseesee = hardwareMap.get(Limelight3A.class, "lookylookyseesee");
+        poopeemotorey = hardwareMap.get(DcMotor.class, "turretmotor");
+        flywheel=hardwareMap.get(DcMotor.class,"testemotor");
+        slot = new Servo[3];
+        slot[0]=hardwareMap.get(Servo.class,"lift1");
+        slot[1]=hardwareMap.get(Servo.class,"lift2");
+        slot[2]=hardwareMap.get(Servo.class,"lift3");
+        lookylookyseesee = hardwareMap.get(Limelight3A.class, "limelight");
         lookylookyseesee.pipelineSwitch(0);
         lookylookyseesee.start();
-        colorL = hardwareMap.get(NormalizedColorSensor.class, SENSOR_1_NAME);
-        colorR = hardwareMap.get(NormalizedColorSensor.class, SENSOR_2_NAME);
-        colorB = hardwareMap.get(NormalizedColorSensor.class, SENSOR_3_NAME);
+//        color1 = hardwareMap.get(NormalizedColorSensor.class, "color1");
+        color2 = hardwareMap.get(NormalizedColorSensor.class, "color2");
+        color3 = hardwareMap.get(NormalizedColorSensor.class, "color3");
+        flywheel.setPower(-1);
+        intake.setPower(-1);
     }
     @Override
     public void start() {
@@ -248,7 +244,6 @@ public class Meet2RedAuto extends OpMode{
         if (resultsofpooe != null && resultsofpooe.isValid()) {
             List<LLResultTypes.FiducialResult> fiducialResults2 = resultsofpooe.getFiducialResults();
             for (LLResultTypes.FiducialResult fr : fiducialResults2) {
-//                Double TxValue = resultsofpooe.getTx();
                 double tx = fr.getTargetXDegrees();
                 if(fr.getFiducialId()==24) {
                     derivativeTx = 1000000000.0*(tx-lastTx)/(System.nanoTime()-lastTimeUpdated);
@@ -270,88 +265,98 @@ public class Meet2RedAuto extends OpMode{
         switch(shooterState){
             case 0:
                 setIndexer(indexer);
-                if(shots!=0){
-                    setState(1);
-                    break;
-                }
-                else{
-                    setState(0);
-                    break;
-                }
+                state=1;
+                telemetry.addData("case",state);
+                telemetry.update();
+                two=detectColor(color2);
+                three=detectColor(color3);
+                telemetry.addData("case",state);
+                telemetry.addData("slot2",two);
+                telemetry.addData("slot3",three);
+                telemetry.update();
+                setState(1);
             case 1:
-                order=spinUp(indexer,flywheel);
+                order="012";
+                state=2;
+                telemetry.addData("case",state);
+                telemetry.update();
+                two=detectColor(color2);
+                three=detectColor(color3);
+                telemetry.addData("case",state);
+                telemetry.addData("slot2",two);
+                telemetry.addData("slot3",three);
+                telemetry.update();
                 setState(2);
             case 2:
                 int first= Integer.parseInt(String.valueOf(order.charAt(0)));
                 int second= Integer.parseInt(String.valueOf(order.charAt(1)));
                 int third= Integer.parseInt(String.valueOf(order.charAt(2)));
-                if(indexer.get(first)!='n'){
-                    slot[first].setPosition(0.685);
+//                if(indexer.get(first)!='n'){
+                    slot[first].setPosition(servopositionup(first));
                     shots--;
-                    wait(200);
-                    slot[first].setPosition(0.505);
-                }
-                if(indexer.get(second)!='n'){
-                    slot[second].setPosition(0.685);
+                    Thread.sleep(200);
+//                    slot[first].setPosition(servopositionhalf(first));
+//                }
+//                if(indexer.get(second)!='n'){
+                    slot[second].setPosition(servopositionup(second));
                     shots--;
-                    wait(200);
-                    slot[second].setPosition(0.505);
-                }
-                if(indexer.get(third)!='n'){
-                    slot[third].setPosition(0.685);
+                    Thread.sleep(200);
+//                    slot[second].setPosition(servopositionhalf(second));
+//                }
+//                if(indexer.get(third)!='n'){
+                    slot[third].setPosition(servopositionup(third));
                     shots--;
-                    wait(200);
-                    slot[third].setPosition(0.505);
-                }
+                    Thread.sleep(200);
+//                    slot[third].setPosition(servopositionhalf(third));
+//                }
                 if(shots>0){
+                    state=0;
+                    telemetry.addData("case",state);
+                    telemetry.update();
                     setState(0);
                 }
-                flywheel.setPower(0);
-                slot[first].setPosition(0.325);
-                slot[second].setPosition(0.325);
-                slot[third].setPosition(0.325);
+                state=0;
+                serv1=0.745;
+                slot[0].setPosition(0.745);
+                serv2=0.05;
+                slot[1].setPosition(0.05);
+                serv3=0.1;
+                slot[2].setPosition(0.1);
+                telemetry.addData("servo1",serv1);
+                telemetry.addData("servo2",serv2);
+                telemetry.addData("servo3",serv3);
+                telemetry.update();
+                two=detectColor(color2);
+                three=detectColor(color3);
+                telemetry.addData("case",state);
+                telemetry.addData("slot2",two);
+                telemetry.addData("slot3",three);
+                telemetry.update();
         }
     }
     public void setIndexer(Map<Integer, Character> indexer) {
         this.indexer = indexer;
-        if(pin0.getState()){
-            indexer.put(0,'p');
+//        indexer.put(0,detectColor(color1));
+//        if(detectColor(color1)!='n'){
+//            shots++;
+//        }
+        indexer.put(1,detectColor(color2));
+        if(detectColor(color2)!='n'){
             shots++;
         }
-        else if(pin1.getState()){
+        indexer.put(2,detectColor(color3));
+        if(detectColor(color3)!='n'){
+            shots++;
+        }
+        if(detectColor(color2)=='p'&&detectColor(color3)=='p'){
             indexer.put(0,'g');
-            shots++;
         }
         else{
-            indexer.put(0,'n');
-        }
-        if(pin2.getState()){
-            indexer.put(1,'p');
-            shots++;
-        }
-        else if(pin3.getState()){
-            indexer.put(1,'g');
-            shots++;
-        }
-        else{
-            indexer.put(1,'n');
-        }
-        if(pin4.getState()){
-            indexer.put(2,'p');
-            shots++;
-        }
-        if(pin5.getState()){
-            indexer.put(2,'g');
-            shots++;
-        }
-        else{
-            indexer.put(2,'n');
+            indexer.put(0,'p');
         }
     }
     public String spinUp(Map<Integer, Character> indexer,DcMotor flywheel) {
         this.indexer = indexer;
-        this.flywheel = flywheel;
-        flywheel.setPower(1);
         int keygreen = getKeyFromValueStream(indexer, 'g');
         switch (randomizationState) {
             case 0:
@@ -434,6 +439,50 @@ public class Meet2RedAuto extends OpMode{
             return 'n';
         }
     }
+    private double servopositionup(int which){
+        if(which==0){
+            serv1=0.3;
+            telemetry.addData("servo1",serv1);
+            telemetry.update();
+            return 0.3;
+        }
+        else if(which==1){
+            serv2=0.55;
+            telemetry.addData("servo2",serv2);
+            telemetry.update();
+            return 0.55;
+        }
+        else if(which==2){
+            serv3=0.55;
+            telemetry.addData("servo3",serv3);
+            telemetry.update();
+            return 0.55;
+        }
+        else{
+            serv1=0.745;
+            slot[0].setPosition(0.745);
+            serv2=0.05;
+            slot[1].setPosition(0.05);
+            serv3=0.1;
+            slot[2].setPosition(0.1);
+            telemetry.addData("servo1",serv1);
+            telemetry.addData("servo2",serv2);
+            telemetry.addData("servo3",serv3);
+            telemetry.update();
+            return 0.55;
+        }
+    }
+    private double servopositionhalf(int which){
+        if(which==0){
+            return 0.5225;
+        }
+        else if(which==1){
+            return 0.3;
+        }
+        else{
+            return 0.325;
+        }
+    }
     private double clamp01(float v) {
         return Math.max(0.0, Math.min(1.0, v));
     }
@@ -461,76 +510,89 @@ public class Meet2RedAuto extends OpMode{
                 }
                 break;
 
-            case 2:
-                intake.setPower(1);
-                if (!follower.isBusy()) {
-                    follower.followPath(paths.Path3, true);
-                    setPathState(3);
-                }
-                break;
-
-            case 3:
-                intake.setPower(0);
-                if (!follower.isBusy()) {
-                    follower.followPath(paths.Path4, true);
-                    setPathState(4);
-                }
-                break;
-
-            case 4:
-                shooterUpdates();
-                if (!follower.isBusy()) {
-                    follower.followPath(paths.Path5, true);
-                    setPathState(5);
-                }
-                break;
-
-            case 5:
-                intake.setPower(1);
-                if (!follower.isBusy()) {
-                    follower.followPath(paths.Path6, true);
-                    setPathState(6);
-                }
-                break;
-
-            case 6:
-                intake.setPower(0);
-                if (!follower.isBusy()) {
-                    follower.followPath(paths.Path7, true);
-                    setPathState(7);
-                }
-                break;
-
-            case 7:
-                shooterUpdates();
-                if (!follower.isBusy()) {
-                    follower.followPath(paths.Path8, true);
-                    setPathState(8);
-                }
-                break;
-
-            case 8:
-                intake.setPower(1);
-                if (!follower.isBusy()) {
-                    follower.followPath(paths.Path9, true);
-                    setPathState(9);
-                }
-                break;
-
-            case 9:
-                intake.setPower(0);
-                if (!follower.isBusy()) {
-                    follower.followPath(paths.Path10, true);
-                    setPathState(10);
-                }
-                break;
-
-            case 10:
-                shooterUpdates();
-                if (!follower.isBusy()) {
-                    setPathState(-1); // finished
-                }
-                break;
+//            case 2:
+//                if (!follower.isBusy()) {
+//                    follower.followPath(paths.Path3, true);
+//                    setPathState(3);
+//                }
+//                break;
+//
+//            case 3:
+//                if (!follower.isBusy()) {
+//                    follower.followPath(paths.Path4, true);
+//                    setPathState(4);
+//                }
+//                break;
+//
+//            case 4:
+//                shooterUpdates();
+//                if (!follower.isBusy()) {
+//                    follower.followPath(paths.Path5, true);
+//                    setPathState(5);
+//                }
+//                break;
+//
+//            case 5:
+//                if (!follower.isBusy()) {
+//                    follower.followPath(paths.Path6, true);
+//                    setPathState(6);
+//                }
+//                break;
+//
+//            case 6:
+//                if (!follower.isBusy()) {
+//                    follower.followPath(paths.Path7, true);
+//                    setPathState(7);
+//                }
+//                break;
+//
+//            case 7:
+//                shooterUpdates();
+//                if (!follower.isBusy()) {
+//                    follower.followPath(paths.Path8, true);
+//                    setPathState(8);
+//                }
+//                break;
+//
+//            case 8:
+//                if (!follower.isBusy()) {
+//                    follower.followPath(paths.Path9, true);
+//                    setPathState(9);
+//                }
+//                break;
+//
+//            case 9:
+//                if (!follower.isBusy()) {
+//                    follower.followPath(paths.Path10, true);
+//                    setPathState(10);
+//                }
+//                break;
+//            case 10:
+//                shooterUpdates();
+//                if(!follower.isBusy()) {
+//                    follower.followPath(paths.Path11, true);
+//                    setPathState(11);
+//                }
+//                break;
+//            case 11:
+//                if(!follower.isBusy()) {
+//                    follower.followPath(paths.Path12, true);
+//                    setPathState(12);
+//                }
+//                break;
+//
+//            case 12:
+//                if(!follower.isBusy()) {
+//                    follower.followPath(paths.Path13,true);
+//                    setPathState(13);
+//                }
+//                break;
+//
+//            case 13:
+//                if (!follower.isBusy()) {
+//                    setPathState(-1); // finished
+//                }
+//                break;
         }
     }
     private void setPathState(int newState) {
