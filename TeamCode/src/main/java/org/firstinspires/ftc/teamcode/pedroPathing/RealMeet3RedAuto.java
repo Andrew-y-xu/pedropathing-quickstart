@@ -39,13 +39,14 @@ public class RealMeet3RedAuto extends OpMode {
         public PathChain Path6;
         public PathChain Path7;
         public PathChain Path8;
+        public PathChain Path9;
 
         public Paths(Follower follower) {
             Path1 = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(123.500, 122.000),
+                                    new Pose(123.500, 127.000),
 
-                                    new Pose(84.000, 83.500)
+                                    new Pose(86.000, 83.500)
                             )
                     ).setConstantHeadingInterpolation(Math.toRadians(35.5))
 
@@ -53,59 +54,57 @@ public class RealMeet3RedAuto extends OpMode {
 
             Path2 = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(84.000, 83.500),
+                                    new Pose(86.000, 83.500),
 
-                                    new Pose(125.000, 83.500)
+                                    new Pose(123.000, 83.500)
                             )
                     ).setTangentHeadingInterpolation()
 
                     .build();
 
             Path3 = follower.pathBuilder().addPath(
-                            new BezierLine(
+                            new BezierCurve(
                                     new Pose(125.000, 83.500),
-
-                                    new Pose(84.000, 83.500)
-                            )
-                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
+                                    new Pose(120,80),
+                                    new Pose(126,77)                            )
+                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(90))
 
                     .build();
 
             Path4 = follower.pathBuilder().addPath(
-                            new BezierCurve(
-                                    new Pose(84.000, 83.500),
-                                    new Pose(96.000, 51.000),
-                                    new Pose(125.000, 60.000)
+                            new BezierLine(
+                                    new Pose(127, 77),
+                                    new Pose(86.000, 83.500)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
+                    ).setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(0))
 
                     .build();
 
             Path5 = follower.pathBuilder().addPath(
-                            new BezierLine(
-                                    new Pose(125.000, 60.000),
-
-                                    new Pose(84.000, 83.500)
+                            new BezierCurve(
+                                    new Pose(86.000, 83.500),
+                                    new Pose(96.000, 51.000),
+                                    new Pose(130, 60.000)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
 
                     .build();
 
             Path6 = follower.pathBuilder().addPath(
-                            new BezierCurve(
-                                    new Pose(84.000, 83.500),
-                                    new Pose(84.000, 27.000),
-                                    new Pose(125.000, 35.000)
+                            new BezierLine(
+                                    new Pose(125.000, 60.000),
+
+                                    new Pose(86.000, 83.500)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
 
                     .build();
 
             Path7 = follower.pathBuilder().addPath(
-                            new BezierLine(
-                                    new Pose(125.000, 35.000),
-
-                                    new Pose(84.000, 83.500)
+                            new BezierCurve(
+                                    new Pose(86.000, 83.500),
+                                    new Pose(84.000, 27.000),
+                                    new Pose(130.000, 35.000)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
 
@@ -113,9 +112,19 @@ public class RealMeet3RedAuto extends OpMode {
 
             Path8 = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(84.000, 83.500),
+                                    new Pose(125.000, 35.000),
 
-                                    new Pose(120, 69.000)
+                                    new Pose(86.000, 83.500)
+                            )
+                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
+
+                    .build();
+
+            Path9 = follower.pathBuilder().addPath(
+                            new BezierLine(
+                                    new Pose(86.000, 83.500),
+
+                                    new Pose(117, 69.000)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(270))
 
@@ -126,7 +135,7 @@ public class RealMeet3RedAuto extends OpMode {
     public void init(){
         follower = Constants.createFollower(hardwareMap);
         paths = new RealMeet3RedAuto.Paths(follower);
-        follower.setStartingPose(new Pose(123.5, 122, Math.toRadians(35.5)));
+        follower.setStartingPose(new Pose(123.5, 127, Math.toRadians(35.5)));
         intake=hardwareMap.get(DcMotor.class,"intakemotor");
         intake2=hardwareMap.get(Servo.class, "intake2servo");
         telemetry.addLine("Initialized Blue Auto!");
@@ -139,13 +148,11 @@ public class RealMeet3RedAuto extends OpMode {
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         limelight.pipelineSwitch(0);
         limelight.start();
-        follower.setMaxPower(0.5);
-//        flywheel.setPower(-1);//will change soon
-        intake.setPower(-1);
-        intake2.setPosition(1);
-        //MAKE THE INTAKE SERVO SPIN OR WHATEVER
+        follower.setMaxPower(0.85);
     }
     public void loop(){
+        intake.setPower(-1);
+        intake2.setPosition(1);
         follower.update();
         try {
             autonomousPathUpdate();
@@ -232,8 +239,13 @@ public class RealMeet3RedAuto extends OpMode {
                     pathState=8;
                 }
                 break;
-
             case 8:
+                if (!follower.isBusy()) {
+                    follower.followPath(paths.Path9, true);
+                    pathState=9;
+                }
+                break;
+            case 9:
                 if (!follower.isBusy()) {
                     pathState=-1;
                 }

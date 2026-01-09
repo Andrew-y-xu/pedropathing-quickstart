@@ -77,8 +77,8 @@ public class decodeteleopPID extends OpMode {
 
         intakemotor = hardwareMap.dcMotor.get("intakemotor");
 
-        poopeemotorey = hardwareMap.get(DcMotor.class, "poopeemotorey");
-        lookylookyseesee = hardwareMap.get(Limelight3A.class, "lookylookyseesee");
+        poopeemotorey = hardwareMap.get(DcMotor.class, "turretmotor");
+        lookylookyseesee = hardwareMap.get(Limelight3A.class, "limelight");
 
         telemetry.setMsTransmissionInterval(11);
 
