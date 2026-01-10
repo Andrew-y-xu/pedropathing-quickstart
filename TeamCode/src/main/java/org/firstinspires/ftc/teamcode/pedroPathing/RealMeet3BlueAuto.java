@@ -14,7 +14,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import java.util.List;
 @Autonomous
-public class RealMeet3RedAuto extends OpMode {
+public class RealMeet3BlueAuto extends OpMode {
     DcMotor flywheel;
     Servo hoodservo;
     Servo slot1;
@@ -128,19 +128,19 @@ public class RealMeet3RedAuto extends OpMode {
         public Paths(Follower follower) {
             Path1 = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(123.500, 127.000),
+                                    new Pose(20.5, 127.000),
 
-                                    new Pose(86.000, 83.500)
+                                    new Pose(58.000, 83.500)
                             )
-                    ).setConstantHeadingInterpolation(Math.toRadians(35.5))
+                    ).setConstantHeadingInterpolation(Math.toRadians(144.5))
 
                     .build();
 
             Path2 = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(86.000, 83.500),
+                                    new Pose(58.000, 83.500),
 
-                                    new Pose(123.000, 83.500)
+                                    new Pose(21.000, 83.500)
                             )
                     ).setTangentHeadingInterpolation()
 
@@ -148,47 +148,47 @@ public class RealMeet3RedAuto extends OpMode {
 
             Path3 = follower.pathBuilder().addPath(
                             new BezierCurve(
-                                    new Pose(123.000, 83.500),
-                                    new Pose(120,80),
-                                    new Pose(126,77)                            )
-                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(90))
+                                    new Pose(21.000, 83.500),
+                                    new Pose(24,80),
+                                    new Pose(18,77)                            )
+                    ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(90))
 
                     .build();
 
             Path4 = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(126, 77),
-                                    new Pose(86.000, 83.500)
+                                    new Pose(18, 77),
+                                    new Pose(58.000, 83.500)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(0))
+                    ).setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(180))
 
                     .build();
 
             Path5 = follower.pathBuilder().addPath(
                             new BezierCurve(
-                                    new Pose(86.000, 83.500),
+                                    new Pose(58.000, 83.500),
                                     new Pose(96.000, 51.000),
-                                    new Pose(130, 60.000)
+                                    new Pose(14, 60.000)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
+                    ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
 
                     .build();
 
             Path6 = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(130, 60.000),
+                                    new Pose(14.000, 60.000),
 
-                                    new Pose(86.000, 83.500)
+                                    new Pose(58.000, 83.500)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
+                    ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
 
                     .build();
 
             Path7 = follower.pathBuilder().addPath(
                             new BezierCurve(
-                                    new Pose(86.000, 83.500),
-                                    new Pose(84.000, 27.000),
-                                    new Pose(130.000, 35.000)
+                                    new Pose(58, 83.500),
+                                    new Pose(60.000, 27.000),
+                                    new Pose(14.000, 35.000)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
 
@@ -196,9 +196,9 @@ public class RealMeet3RedAuto extends OpMode {
 
             Path8 = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(130.000, 35.000),
+                                    new Pose(14.000, 35.000),
 
-                                    new Pose(86.000, 83.500)
+                                    new Pose(58.000, 83.500)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
 
@@ -206,9 +206,9 @@ public class RealMeet3RedAuto extends OpMode {
 
             Path9 = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(86.000, 83.500),
+                                    new Pose(58.000, 83.500),
 
-                                    new Pose(117, 69.000)
+                                    new Pose(27, 69.000)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(270))
 
@@ -218,8 +218,8 @@ public class RealMeet3RedAuto extends OpMode {
 
     public void init(){
         follower = Constants.createFollower(hardwareMap);
-        paths = new RealMeet3RedAuto.Paths(follower);
-        follower.setStartingPose(new Pose(123.5, 127, Math.toRadians(35.5)));
+        paths = new RealMeet3BlueAuto.Paths(follower);
+        follower.setStartingPose(new Pose(20.5, 127, Math.toRadians(144.5)));
         intake=hardwareMap.get(DcMotor.class,"intakemotor");
         intake2=hardwareMap.get(Servo.class, "intake2servo");
         telemetry.addLine("Initialized Blue Auto!");

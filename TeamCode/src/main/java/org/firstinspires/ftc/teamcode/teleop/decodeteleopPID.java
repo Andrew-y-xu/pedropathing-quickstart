@@ -1,18 +1,51 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
+import com.arcrobotics.ftclib.controller.PIDController;
+import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.robotcore.hardware.AnalogInput;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
+import com.qualcomm.hardware.limelightvision.LLStatus;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+
+import org.firstinspires.ftc.teamcode.hardware.AutoShooter;
+
+
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import org.firstinspires.ftc.teamcode.hardware.AutoShooter;
+import java.util.List;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import java.util.ArrayList;
@@ -30,6 +63,8 @@ public class decodeteleopPID extends OpMode {
     Servo liftservo;
     Servo lift2servo;
     Servo lift3servo;
+    Servo intake2servo;
+    Servo hoodservo; //--- Added for AutoShoot
 
 //    Servo aimservo;
 //
@@ -49,12 +84,26 @@ public class decodeteleopPID extends OpMode {
     private boolean rtWasPressed = false;
     private boolean ltWasPressed = false;
 
+
     double pPID = 0.04;
     double dPID = 0.001;
     double iPID = 0;
     double lastTx = 0;
     double derivativeTx = 0;
     double lastTimeUpdated = 0;
+
+    //--- AutoShoot
+    final AutoShooter autoShoot = new AutoShooter();
+    double limelight_tx = 0;
+    double limelightTy = 0;
+    private boolean aButtonWasPressed = false;
+    private boolean bButtonWasPressed = false;
+    double shooterPowerValue = 0;
+    double servoPositionValue = 0;
+    double servo_value = 0.5;
+    String limelightMessage = "No data available";
+    String autoShootMessage = "At Init";
+
 
     double deadzone = 0.05;
     private boolean jerkRunning = false;
@@ -64,7 +113,6 @@ public class decodeteleopPID extends OpMode {
     private double clampValue = 0.25;
     private double value = 0;
     public double speed = 1.0;
-
     private ElapsedTime debounceTimer = new ElapsedTime();
 
     @Override
@@ -76,6 +124,8 @@ public class decodeteleopPID extends OpMode {
         motor_backRight = hardwareMap.get(DcMotorEx.class, "rr");
 
         intakemotor = hardwareMap.dcMotor.get("intakemotor");
+        hoodservo = hardwareMap.get(Servo.class, "hood");
+        hoodservo.setPosition(servo_value);
 
         poopeemotorey = hardwareMap.get(DcMotor.class, "turretmotor");
         lookylookyseesee = hardwareMap.get(Limelight3A.class, "limelight");
@@ -108,13 +158,14 @@ public class decodeteleopPID extends OpMode {
         liftservo = hardwareMap.get(Servo.class, "lift2");
         lift2servo = hardwareMap.get(Servo.class, "lift1");
         lift3servo = hardwareMap.get(Servo.class, "lift3");
+        intake2servo = hardwareMap.get(Servo.class, "intake2servo");
         //       aimservo = hardwareMap.get(Servo.class, "aimservo");
 //        convey = hardwareMap.get(Servo.class, "convey");
 
         testmotor.setDirection(DcMotorSimple.Direction.REVERSE);
         intakemotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        liftservo.setPosition(0.05); //0.05
+        liftservo.setPosition(0.00); //0.05
         lift2servo.setPosition(0.745); //0.745
         lift3servo.setPosition(0.1);
         //       aimservo.setPosition(0.5);
@@ -271,18 +322,23 @@ public class decodeteleopPID extends OpMode {
         if (cycleRunning) {
             double t = timer.milliseconds() - cycleStartTime;
 
+
+            //slot1 = lift2servo, slot2 = liftservo, slot3 = lift3servo
+
+
+
             if (cycleMode == 1) {
-                if (t < 300) liftservo.setPosition(0.55); //0.55
-                else if (t < 500) liftservo.setPosition(0.05); //0.05
+                if (t < 300) liftservo.setPosition(0.60); //0.55
+                else if (t < 500) liftservo.setPosition(0.00); //0.05
                 else { cycleRunning = false; cycleMode = 0; }
             }
             else if (cycleMode == 2) {
-                if (t < 300) lift2servo.setPosition(0.30); //0.30
+                if (t < 300) lift2servo.setPosition(0.25); //0.30
                 else if (t < 500) lift2servo.setPosition(0.745);  //0.745
                 else { cycleRunning = false; cycleMode = 0; }
             }
             else if (cycleMode == 3) {
-                if (t < 300) lift3servo.setPosition(0.55);
+                if (t < 300) lift3servo.setPosition(0.60);
                 else if (t < 500) lift3servo.setPosition(0.1);
                 else { cycleRunning = false; cycleMode = 0; }
             }
@@ -294,12 +350,15 @@ public class decodeteleopPID extends OpMode {
 
         if (gamepad2.b) {
             intakemotor.setPower(0);
+            intake2servo.setPosition(0.5);
         }
         if (gamepad2.y) {
             intakemotor.setPower(1.0);
+            intake2servo.setPosition(1.0);
         }
         if (gamepad2.x) {
             intakemotor.setPower(-1.0);
+            intake2servo.setPosition(0.0);
         }
 
 ///***************************/
@@ -327,41 +386,58 @@ public class decodeteleopPID extends OpMode {
 /***************************/
 /**** Dingus Shooter (incremental + presets override) ***/
 /***************************/
-
-// --- Incremental step controls (tap) ---
-        double step = 0.05;
-
-// Treat triggers like buttons (press past threshold)
-        boolean rtPressed = gamepad2.right_trigger > 0.5;
-        boolean ltPressed = gamepad2.left_trigger  > 0.5;
-
-// Rising edge: step only once per press
-        if (rtPressed && !rtWasPressed) {
-            value += step;
-        }
-        if (ltPressed && !ltWasPressed) {
-            value -= step;
-        }
-
-// Save states for next loop
-        rtWasPressed = rtPressed;
-        ltWasPressed = ltPressed;
-
-// --- Presets OVERRIDE incremental ---
-        if (gamepad2.left_bumper) {
-            value = 0.70;
-        } else if (gamepad2.right_bumper) {
-            value = 0.0;
-        }
+//
+//// --- Incremental step controls (tap) ---
+//        double step = 0.05;
+//
+//// Treat triggers like buttons (press past threshold)
+//        boolean rtPressed = gamepad2.right_trigger > 0.5;
+//        boolean ltPressed = gamepad2.left_trigger  > 0.5;
+//
+//// Rising edge: step only once per press
+//        if (rtPressed && !rtWasPressed) {
+//            value += step;
+//        }
+//        if (ltPressed && !ltWasPressed) {
+//            value -= step;
+//        }
+//
+//// Save states for next loop
+//        rtWasPressed = rtPressed;
+//        ltWasPressed = ltPressed;
+//
+//// --- Presets OVERRIDE incremental ---
+//        if (gamepad2.left_bumper) {
+//            value = 0.70;
+//        } else if (gamepad2.right_bumper) {
+//            value = 0.0;
+//        }
 
 // Clamp AFTER everything, then apply
         value = Math.max(0.0, Math.min(value, 1.0));
-        testmotor.setPower(value);
+
 
 // Telemetry
 /***************************/
 /**** Do I see gangster rapper? ***/
 /***************************/
+
+
+        //if (gamepad2.a && !aButtonWasPressed && !autoShoot.isShooterStopped()) {
+        if (gamepad2.a && !aButtonWasPressed && autoShoot.isShooterStopped()) {
+            autoShoot.startShooter();
+            autoShootMessage = "Pressed and started";
+        }
+
+        //if (gamepad2.b && !aButtonWasPressed && autoShoot.isShooterStopped()) {
+        if (gamepad2.right_bumper && !bButtonWasPressed && !autoShoot.isShooterStopped()) {
+            autoShoot.stopShooter();
+            autoShootMessage = "Pressed and stopped";
+        }
+        aButtonWasPressed = gamepad2.a;
+        bButtonWasPressed = gamepad2.right_bumper;
+
+        ///*** End Flywheel On/Off ***/
 
         LLResult resultsofpooe = lookylookyseesee.getLatestResult();
         boolean doesiseeitfoundboi = false;
@@ -369,24 +445,62 @@ public class decodeteleopPID extends OpMode {
         if (resultsofpooe != null && resultsofpooe.isValid()) {
             List<LLResultTypes.FiducialResult> fiducialResults2 = resultsofpooe.getFiducialResults();
             for (LLResultTypes.FiducialResult fr : fiducialResults2) {
+
+
+                //--- For Auto Aim ---//
 //                Double TxValue = resultsofpooe.getTx();
-                double tx = fr.getTargetXDegrees();
-                if(fr.getFiducialId()==24) {
-                    derivativeTx = 1000000000.0*(tx-lastTx)/(System.nanoTime()-lastTimeUpdated);
-                    poopeemotorey.setPower(pPID * tx + dPID * derivativeTx); //TxValue
+                //--- Get LimeLight Tx
+                limelight_tx = fr.getTargetXDegrees();
+                limelightTy = fr.getTargetYDegrees();
+                //--- If Red Target
+                if (fr.getFiducialId() == 24) {
+                    derivativeTx = 1000000000.0 * (limelight_tx - lastTx) / (System.nanoTime() - lastTimeUpdated);
+                    poopeemotorey.setPower(pPID * limelight_tx + dPID * derivativeTx); //TxValue
                     doesiseeitfoundboi = true;
-                    lastTx = tx;
+                    lastTx = limelight_tx;
                     lastTimeUpdated = System.nanoTime();
-                    break;
+                    //break;
+                    //}
+
+                    //--- For Auto Shoot (Auto Shoot depends on Limelight finding the target for distant ---//
+                    //--- Future FlyWheel & Angle On/Off
+                /*
+                if (gamepad2.left_bumper) {
+                    //--- Get LimeLight Ty
+                    double ty = fr.getTargetYDegrees();
+                    //--- Shooter FlyWheel
+                    shooterPowerValue = autoShoot.getFlywheelPower;
+                    testmotor.setPower(shooterPowerValue);
+
+                    //--- Shooter Angle
+                    servoPositionValue = autoShoot.getAnglePosition;
+                    hoodservo.setPosition(servoPositionValue);
                 }
+                */
+
+//                    //--- Get LimeLight Ty
+//                    autoShoot.advancedMathematics(limelightTy);
+//                    //--- Shooter FlyWheel
+//                    shooterPowerValue = autoShoot.getFlywheelPower();  //--- Update Shooter FlyWheel math here, or use new shooter class for object
+//                    testmotor.setPower(shooterPowerValue);
+//                    //--- Shooter Angle
+//                    servoPositionValue = autoShoot.getAnglePosition();  //--- Update Shooter Angle math here, or use new shooter class for object
+//                    hoodservo.setPosition(servoPositionValue);
+//                    break;
+
+
+                }
+
             }
 
         }
         if (!doesiseeitfoundboi) {
             poopeemotorey.setPower(0);
-            telemetry.addData("Limelight", "No data available");
+            limelightMessage = "No data available";
+        } else {
+            limelightMessage = "Data is available";
         }
-        telemetry.update();
+        //telemetry.update();
 
 
 //
@@ -407,7 +521,31 @@ public class decodeteleopPID extends OpMode {
 //        } else {
 //            convey.setPosition(0.5);
 //        }
+        if (autoShoot.isShooterStopped() || !doesiseeitfoundboi) {
+            testmotor.setPower(0);
+            // hoodservo optional here
+        } else {
+            autoShoot.advancedMathematics(limelightTy);
+            shooterPowerValue = autoShoot.getFlywheelPower();
+            servoPositionValue = autoShoot.getAnglePosition();
+            testmotor.setPower(shooterPowerValue);
+            hoodservo.setPosition(servoPositionValue);
+        }
 
+
+        telemetry.addData("----- Shooter Data -----", null);
+        telemetry.addData("AutoShoot: ", autoShootMessage);
+        telemetry.addData("AutoShoot Stopped: ", autoShoot.isShooterStopped());
+        telemetry.addData("AutoShoot(FlyWheel Power): ", shooterPowerValue);
+        telemetry.addData("AutoShoot(Hood Position): ", servoPositionValue);
+        telemetry.addData("AutoShoot(a Button): ", gamepad2.a);
+        telemetry.addData("AutoShoot(a Button WasPressed): ", aButtonWasPressed);
+
+        telemetry.addData("----- Limelight Data -----", null);
+        telemetry.addData("Limelight: ", limelightMessage);
+        telemetry.addData("LimeLight(ty): ", limelightTy);
+        telemetry.addData("LimeLight(tx): ", limelight_tx);
+        telemetry.update();
         // Telemetry feedback
         telemetry.addData( "Timer (s)", timer.seconds());
         telemetry.addData("Shooter Power (0-1)", value);
