@@ -48,7 +48,21 @@ public class AutoShooter {
         } else { //--- Run the FlyWheel for Auto
 
             //--- Do the math here <TBD>
-            //double myMathToBe = this.distantTy; //This is only temporary
+            double powerAConstant = 0.0147369;
+            double powerBConstant = 0.629345;
+
+            double hoodPositionConstant = 0.92;
+
+            // Top small Triangle with distant(ty) greater than 2.5
+            if( this.distantTy >= 2.5) {
+                this.calPowerValue = 0.66;
+                this.calHoodValue = 0.99; // 0.2 or 0.9
+            } else {
+                // Field large Triangle with distant(ty) under than 2.5
+                this.calPowerValue = (powerAConstant * this.distantTy) + powerBConstant;
+                this.calHoodValue = hoodPositionConstant;
+            }
+
             //---Example
             /*
             double error = targetRPM - currentRPM;
@@ -65,6 +79,7 @@ public class AutoShooter {
             //--- No Math Test, temporary without Algorithm
             //    1. Data is based on data collected from 1/4
             //    2. Ensure Battery voltage is over 12.00 V
+            /*
             if( this.distantTy >= 2.5) {
                 this.calPowerValue = 0.70;
                 this.calHoodValue = 0.99; // 0.2 or 0.9
@@ -78,6 +93,7 @@ public class AutoShooter {
                 this.calPowerValue = 0.55;
                 this.calHoodValue = 0.0;
             }
+            */
 
             //shooterPowerValue = Range.clip(calPowerValue, shooterPowerMinLimit, shooterPowerMaxLimit); //Limit the result within range
             //hoodPositionValue = Range.clip(calHoodValue, hoodPositionMinLimit, hoodPositionMaxLimit); //Limit the result within range
@@ -91,6 +107,12 @@ public class AutoShooter {
     }
     public double getAnglePosition() {
         return this.hoodPositionValue;
+    }
+    public void setFlywheelPower(double power) {
+        this.shooterPowerValue = power;
+    }
+    public void setAnglePosition(double position) {
+        this.hoodPositionValue = position;
     }
     public void stopShooter() {
         this.shooterStopped = true;
