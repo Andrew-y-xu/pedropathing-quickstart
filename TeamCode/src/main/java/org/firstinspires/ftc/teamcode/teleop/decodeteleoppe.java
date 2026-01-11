@@ -50,8 +50,8 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import java.util.ArrayList;
 
-@TeleOp(name="Blueteleopm3")
-public class decodeteleop extends OpMode {
+@TeleOp(name="Redteleopm3")
+public class decodeteleoppe extends OpMode {
 
     DcMotor testmotor;
     DcMotor intakemotor;
@@ -159,7 +159,7 @@ public class decodeteleop extends OpMode {
         lift2servo = hardwareMap.get(Servo.class, "lift1");
         lift3servo = hardwareMap.get(Servo.class, "lift3");
         intake2servo = hardwareMap.get(Servo.class, "intake2servo");
- //       aimservo = hardwareMap.get(Servo.class, "aimservo");
+        //       aimservo = hardwareMap.get(Servo.class, "aimservo");
 //        convey = hardwareMap.get(Servo.class, "convey");
 
         testmotor.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -168,7 +168,7 @@ public class decodeteleop extends OpMode {
         liftservo.setPosition(0.00); //0.05
         lift2servo.setPosition(0.745); //0.745
         lift3servo.setPosition(0.1);
- //       aimservo.setPosition(0.5);
+        //       aimservo.setPosition(0.5);
 
 
         telemetry.addData("Status", "Initialized");
@@ -348,6 +348,7 @@ public class decodeteleop extends OpMode {
         /**** Intake ***/
         /***************************/
 
+
         if (gamepad2.b || gamepad1.x) {
             intakemotor.setPower(0);
             intake2servo.setPosition(0.5);
@@ -362,6 +363,7 @@ public class decodeteleop extends OpMode {
             intakemotor.setPower(-1.0);
             intake2servo.setPosition(0.0);
         }
+
 
 ///***************************/
 ///**** Clamp Servo – gamepad2 RIGHT stick smooth control ***/
@@ -455,7 +457,7 @@ public class decodeteleop extends OpMode {
                 limelight_tx = fr.getTargetXDegrees();
                 limelightTy = fr.getTargetYDegrees();
                 //--- If Red Target
-                if (fr.getFiducialId() ==20) {
+                if (fr.getFiducialId() ==24) {
                     derivativeTx = 1000000000.0 * (limelight_tx - lastTx) / (System.nanoTime() - lastTimeUpdated);
                     poopeemotorey.setPower(pPID * limelight_tx + dPID * derivativeTx); //TxValue
                     doesiseeitfoundboi = true;

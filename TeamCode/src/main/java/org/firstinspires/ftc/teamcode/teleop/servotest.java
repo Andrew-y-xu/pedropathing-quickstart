@@ -30,7 +30,7 @@ public class servotest extends OpMode {
 
     @Override
     public void init() {
-        liftservo = hardwareMap.get(Servo.class, "lift");
+        liftservo = hardwareMap.get(Servo.class, "hood");
 
         liftservo.setPosition(value);
 
