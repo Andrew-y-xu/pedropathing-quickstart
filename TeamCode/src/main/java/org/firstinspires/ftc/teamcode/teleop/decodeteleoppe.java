@@ -525,14 +525,19 @@ public class decodeteleoppe extends OpMode {
 //            convey.setPosition(0.5);
 //        }
         if (autoShoot.isShooterStopped() || !doesiseeitfoundboi) {
-            if (gamepad1.left_trigger > 0) {
-                poopeemotorey.setPower(gamepad1.left_trigger * 0.35);
+
+            double turretPower = 0.0; // DEFAULT = stop
+
+            if (gamepad1.left_trigger > 0.05) {
+                turretPower =  gamepad1.left_trigger * 0.35;
             }
-            if (gamepad1.right_trigger > 0) {
-                poopeemotorey.setPower(gamepad1.right_trigger * -0.35);
+            else if (gamepad1.right_trigger > 0.05) {
+                turretPower = -gamepad1.right_trigger * 0.35;
             }
+
+            poopeemotorey.setPower(turretPower); // ALWAYS set
             testmotor.setPower(0);
-            // hoodservo optional here
+
         } else {
             autoShoot.advancedMathematics(limelightTy);
             shooterPowerValue = autoShoot.getFlywheelPower();
@@ -540,6 +545,7 @@ public class decodeteleoppe extends OpMode {
             testmotor.setPower(shooterPowerValue);
             hoodservo.setPosition(servoPositionValue);
         }
+
 
 
         telemetry.addData("----- Shooter Data -----", null);
