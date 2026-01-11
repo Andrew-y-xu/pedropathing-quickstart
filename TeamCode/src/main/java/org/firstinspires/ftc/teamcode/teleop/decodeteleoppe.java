@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
-import org.firstinspires.ftc.teamcode.teleop.colorsensoring;
-
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.AnalogInput;
@@ -10,8 +8,6 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
-import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -54,14 +50,11 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import java.util.ArrayList;
 
-@TeleOp(name="Blueteleopm3")
-public class decodeteleop extends OpMode {
+@TeleOp(name="Redteleopm3")
+public class decodeteleoppe extends OpMode {
 
     DcMotor testmotor;
     DcMotor intakemotor;
-//    NormalizedColorSensor didisensor;
-//    NormalizedColorSensor didi2sensor;
-//    NormalizedColorSensor didi3sensor;
 
     DcMotorEx motor_frontLeft;
     DcMotorEx motor_frontRight;
@@ -79,6 +72,11 @@ public class decodeteleop extends OpMode {
 
     ArrayList<Boolean> booleanArray = new ArrayList<Boolean>();
     int booleanIncrementer = 0;
+
+    int cycleMode = 0; // 0 = none, 1 = lift1, 2 = lift2, 3 = lift3
+
+    private boolean cycleRunning = false;
+    private double cycleStartTime = 0;
     DcMotor poopeemotorey;
     private Limelight3A lookylookyseesee;
     ElapsedTime timer = new ElapsedTime();
@@ -86,56 +84,6 @@ public class decodeteleop extends OpMode {
     private boolean rtWasPressed = false;
     private boolean ltWasPressed = false;
 
-    // Queue of WHICH servo/bin to actuate for each color
-    private java.util.ArrayDeque<Integer> greenQueue = new java.util.ArrayDeque<>();
-    private java.util.ArrayDeque<Integer> purpleQueue = new java.util.ArrayDeque<>();
-
-    // Prevent duplicates if the same object is sitting under the sensor
-    private boolean[] greenLatched = new boolean[4];  // index 1..3
-    private boolean[] purpleLatched = new boolean[4];
-
-    // Cycle runner state (only one cycle at a time, like your old code)
-    private boolean cycleRunning = false;
-    private int activeBin = 0;          // 1..3 (which servo set to run)
-    private int activeColor = 0;        // 1 = green cycle, 2 = purple cycle
-    private double cycleStartTime = 0;
-
-    // Button edge detect
-    private boolean prevGreenBtn = false;
-    private boolean prevPurpleBtn = false;
-
-    // Tune: how many stable frames before we count it as “detected”
-    private int[] gStreak = new int[4];
-    private int[] pStreak = new int[4];
-    private static final int STREAK_TO_COUNT = 5;
-
-    private void registerToken(int bin, boolean isGreenNow, boolean isPurpleNow) {
-
-        // debounce streaking
-        gStreak[bin] = isGreenNow ? gStreak[bin] + 1 : 0;
-        pStreak[bin] = isPurpleNow ? pStreak[bin] + 1 : 0;
-
-        boolean greenStable = gStreak[bin] >= STREAK_TO_COUNT;
-        boolean purpleStable = pStreak[bin] >= STREAK_TO_COUNT;
-
-        // Green edge detect: stable true AND not already latched
-        if (greenStable && !greenLatched[bin]) {
-            greenQueue.addLast(bin);
-            greenLatched[bin] = true;
-        }
-        if (!greenStable) {
-            greenLatched[bin] = false;
-        }
-
-        // Purple edge detect
-        if (purpleStable && !purpleLatched[bin]) {
-            purpleQueue.addLast(bin);
-            purpleLatched[bin] = true;
-        }
-        if (!purpleStable) {
-            purpleLatched[bin] = false;
-        }
-    }
 
     double pPID = 0.04;
     double dPID = 0.001;
@@ -211,7 +159,7 @@ public class decodeteleop extends OpMode {
         lift2servo = hardwareMap.get(Servo.class, "lift1");
         lift3servo = hardwareMap.get(Servo.class, "lift3");
         intake2servo = hardwareMap.get(Servo.class, "intake2servo");
- //       aimservo = hardwareMap.get(Servo.class, "aimservo");
+        //       aimservo = hardwareMap.get(Servo.class, "aimservo");
 //        convey = hardwareMap.get(Servo.class, "convey");
 
         testmotor.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -220,20 +168,13 @@ public class decodeteleop extends OpMode {
         liftservo.setPosition(0.00); //0.05
         lift2servo.setPosition(0.745); //0.745
         lift3servo.setPosition(0.1);
- //       aimservo.setPosition(0.5);
+        //       aimservo.setPosition(0.5);
 
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
-
-    }
-    private void doGreenServoThing() {
-
     }
 
-    private void doPurpleServoThing() {
-
-    }
     public void frontLeft(double power){
         if (power > 1){
             power = 1;
@@ -257,60 +198,6 @@ public class decodeteleop extends OpMode {
             power = 1;
         }
         motor_backRight.setPower(power);
-    }
-    private void startCycle(int bin, int color) {
-        cycleRunning = true;
-        activeBin = bin;
-        activeColor = color;
-        cycleStartTime = timer.milliseconds();
-    }
-    private void runCycle() {
-        double t = timer.milliseconds() - cycleStartTime;
-
-        // Example: Use SAME timing (0-300ms first pos, 300-500ms second pos)
-        // but DIFFERENT positions per bin AND per color.
-        // You can make green and purple do different motions if needed.
-
-        if (activeColor == 1) { // GREEN cycle
-            if (activeBin == 1) {
-                if (t < 300) liftservo.setPosition(0.55);
-                else if (t < 500) liftservo.setPosition(0.05);
-                else stopCycle();
-            } else if (activeBin == 2) {
-                if (t < 300) lift2servo.setPosition(0.30);
-                else if (t < 500) lift2servo.setPosition(0.745);
-                else stopCycle();
-            } else if (activeBin == 3) {
-                if (t < 300) lift3servo.setPosition(0.55);
-                else if (t < 500) lift3servo.setPosition(0.10);
-                else stopCycle();
-            }
-        }
-
-        else if (activeColor == 2) { // PURPLE cycle
-            // If purple uses the SAME servo motions as green, you can copy the same blocks.
-            // If purple should do different positions, put those here.
-
-            if (activeBin == 1) {
-                if (t < 300) liftservo.setPosition(0.55);
-                else if (t < 500) liftservo.setPosition(0.05);
-                else stopCycle();
-            } else if (activeBin == 2) {
-                if (t < 300) lift2servo.setPosition(0.30);
-                else if (t < 500) lift2servo.setPosition(0.745);
-                else stopCycle();
-            } else if (activeBin == 3) {
-                if (t < 300) lift3servo.setPosition(0.55);
-                else if (t < 500) lift3servo.setPosition(0.10);
-                else stopCycle();
-            }
-        }
-    }
-
-    private void stopCycle() {
-        cycleRunning = false;
-        activeBin = 0;
-        activeColor = 0;
     }
 
     @Override
@@ -428,32 +315,12 @@ public class decodeteleop extends OpMode {
 //            }
 //        }
 
-//        if (gamepad2.dpad_left  && !cycleRunning) { cycleRunning = true; cycleMode = 1; cycleStartTime = timer.milliseconds(); }
-//        if (gamepad2.dpad_right && !cycleRunning) { cycleRunning = true; cycleMode = 2; cycleStartTime = timer.milliseconds(); }
-//        if (gamepad2.dpad_down && !cycleRunning) { cycleRunning = true; cycleMode = 3; cycleStartTime = timer.milliseconds(); }
-//
-//        if (cycleRunning) {
-//            double t = timer.milliseconds() - cycleStartTime;
-//
-//            if (cycleMode == 1) {
-//                if (t < 300) liftservo.setPosition(0.55); //0.55
-//                else if (t < 500) liftservo.setPosition(0.05); //0.05
-//                else { cycleRunning = false; cycleMode = 0; }
-//            }
-//            else if (cycleMode == 2) {
-//                if (t < 300) lift2servo.setPosition(0.30); //0.30
-//                else if (t < 500) lift2servo.setPosition(0.745);  //0.745
-//                else { cycleRunning = false; cycleMode = 0; }
-//            }
-//            else if (cycleMode == 3) {
-//                if (t < 300) lift3servo.setPosition(0.55);
-//                else if (t < 500) lift3servo.setPosition(0.1);
-//                else { cycleRunning = false; cycleMode = 0; }
-//            }
-//        }
+        if (gamepad2.dpad_left  && !cycleRunning) { cycleRunning = true; cycleMode = 1; cycleStartTime = timer.milliseconds(); }
+        if (gamepad2.dpad_right && !cycleRunning) { cycleRunning = true; cycleMode = 2; cycleStartTime = timer.milliseconds(); }
+        if (gamepad2.dpad_down && !cycleRunning) { cycleRunning = true; cycleMode = 3; cycleStartTime = timer.milliseconds(); }
 
-        boolean greenPressed  = gamepad2.dpad_left  && !prevGreenBtn;
-        boolean purplePressed = gamepad2.dpad_right && !prevPurpleBtn;
+        if (cycleRunning) {
+            double t = timer.milliseconds() - cycleStartTime;
 
 
             //slot1 = lift2servo, slot2 = liftservo, slot3 = lift3servo
@@ -477,17 +344,10 @@ public class decodeteleop extends OpMode {
             }
         }
 
-        if (purplePressed && !cycleRunning && !purpleQueue.isEmpty()) {
-            int bin = purpleQueue.removeFirst();
-            startCycle(bin, 2);
-        } else if (purplePressed && purpleQueue.isEmpty()) {
-            telemetry.addLine("No PURPLE detected.");
-        }
-
-
         /***************************/
         /**** Intake ***/
         /***************************/
+
 
         if (gamepad2.b || gamepad1.x) {
             intakemotor.setPower(0);
@@ -503,6 +363,7 @@ public class decodeteleop extends OpMode {
             intakemotor.setPower(-1.0);
             intake2servo.setPosition(0.0);
         }
+
 
 ///***************************/
 ///**** Clamp Servo – gamepad2 RIGHT stick smooth control ***/
@@ -596,7 +457,7 @@ public class decodeteleop extends OpMode {
                 limelight_tx = fr.getTargetXDegrees();
                 limelightTy = fr.getTargetYDegrees();
                 //--- If Red Target
-                if (fr.getFiducialId() ==20) {
+                if (fr.getFiducialId() ==24) {
                     derivativeTx = 1000000000.0 * (limelight_tx - lastTx) / (System.nanoTime() - lastTimeUpdated);
                     poopeemotorey.setPower(pPID * limelight_tx + dPID * derivativeTx); //TxValue
                     doesiseeitfoundboi = true;
@@ -653,9 +514,6 @@ public class decodeteleop extends OpMode {
 //        } else if (gamepad2.x) {
 //            value = 0.5;
 //        }
-        if (cycleRunning) {
-            runCycle();
-        }
 
 
 //        //conveyer belt
@@ -699,12 +557,6 @@ public class decodeteleop extends OpMode {
         telemetry.addData("LimeLight(tx): ", limelight_tx);
         telemetry.update();
         // Telemetry feedback
-        telemetry.addData("GreenQ", greenQueue.toString());
-        telemetry.addData("PurpleQ", purpleQueue.toString());
-
-//        telemetry.addData("S1", "G:%b P:%b", sensor1Result.isGreen, sensor1Result.isPurple);
-//        telemetry.addData("S2", "G:%b P:%b", sensor2Result.isGreen, sensor2Result.isPurple);
-//        telemetry.addData("S3", "G:%b P:%b", sensor3Result.isGreen, sensor3Result.isPurple);
         telemetry.addData( "Timer (s)", timer.seconds());
         telemetry.addData("Shooter Power (0-1)", value);
         telemetry.update();
