@@ -9,7 +9,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-@Autonomous(name="Meet 2 Red Autonomous")
+@Disabled
+//@Autonomous(name="Meet 2 Red Autonomous")
 public class AutoFarrrr extends OpMode {
 
     // Optional follower (pose/drawing only)
