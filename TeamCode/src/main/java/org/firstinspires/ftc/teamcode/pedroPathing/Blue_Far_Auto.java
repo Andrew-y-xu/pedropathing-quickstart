@@ -6,11 +6,13 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
-@Autonomous(name="Blue Far Auto")
+@Disabled //Comment and UnComment @Autonomous to re-enable
+//@Autonomous(name="Blue Far Auto")
 public class Blue_Far_Auto extends OpMode {
 
     // Pedro follower

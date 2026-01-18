@@ -459,7 +459,7 @@ public class decodeteleop extends OpMode {
             //slot1 = lift2servo, slot2 = liftservo, slot3 = lift3servo
 
 
-
+/*
             if (cycleMode == 1) {
                 if (t < 300) liftservo.setPosition(0.60); //0.55
                 else if (t < 500) liftservo.setPosition(0.00); //0.05
@@ -475,7 +475,7 @@ public class decodeteleop extends OpMode {
                 else if (t < 500) lift3servo.setPosition(0.1);
                 else { cycleRunning = false; cycleMode = 0; }
             }
-        }
+*/
 
         if (purplePressed && !cycleRunning && !purpleQueue.isEmpty()) {
             int bin = purpleQueue.removeFirst();

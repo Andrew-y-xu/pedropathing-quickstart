@@ -7,9 +7,11 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
-@Autonomous(name = "Red Auto", group = "Examples")
+@Disabled //Comment and UnComment @Autonomous to re-enable
+//@Autonomous(name = "Red Auto", group = "Examples")
 public class Red_Auto extends OpMode {
 
     public static Follower follower;

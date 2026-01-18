@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.pedroPathing;
+package org.firstinspires.ftc.teamcode.auto;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
@@ -13,12 +13,20 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+import org.firstinspires.ftc.teamcode.hardware.AutoShooter;
+
 import java.util.List;
 
 
 //@Disabled //Comment and UnComment @Autonomous to re-enable
 @Autonomous
-public class RealMeet3RedAuto extends OpMode {
+public class RealMeet3_v2RedNearAuto extends OpMode {
+
+    ElapsedTime timer = new ElapsedTime();
+    String autoPath;
     DcMotor flywheel;
     Servo hoodservo;
     Servo slot1;
@@ -35,6 +43,12 @@ public class RealMeet3RedAuto extends OpMode {
     double lastTimeUpdated = 0;
     double pPID = 0.04;
     double dPID = 0.001;
+    final AutoShooter autoShoot = new AutoShooter();
+    double limelight_tx = 0;
+    double limelight_ty = 0;
+    String limelightMessage;
+    double shooterPowerValue = 0;
+    double servoPositionValue = 0.91;
     Servo intake2;
 
     // Intake pulse state
@@ -92,15 +106,22 @@ public class RealMeet3RedAuto extends OpMode {
 
         switch (flickerState) {
 
+            //slot1 is in reverse Small mean up
             case 0: // Slot 1 up
-                slot1.setPosition(0.20);
+                //slot1.setPosition(0.10);
+                slot1.setPosition(0.20); //Original setting
+                //slot1.setPosition(0.30);
                 flickerTimer = now;
                 flickerState++;
                 break;
 
             case 1: // Slot 1 down
                 if (now - flickerTimer >= upTime) {
-                    slot1.setPosition(0.745);
+                    //slot1.setPosition(0.55); //resting position too high
+                    //slot1.setPosition(0.60);
+                    //slot1.setPosition(0.65);
+                    slot1.setPosition(0.70);
+                    //slot1.setPosition(0.745); //Original setting
                     flickerTimer = now;
                     flickerState++;
                 }
@@ -108,7 +129,9 @@ public class RealMeet3RedAuto extends OpMode {
 
             case 2: // Slot 2 up
                 if (now - flickerTimer >= downTime) {
-                    slot2.setPosition(0.65);
+                    //slot2.setPosition(0.65); //Original setting
+                    slot2.setPosition(0.70);
+                    //slot2.setPosition(0.75); //Flipper too high, hitting flywheel
                     flickerTimer = now;
                     flickerState++;
                 }
@@ -116,7 +139,7 @@ public class RealMeet3RedAuto extends OpMode {
 
             case 3: // Slot 2 down
                 if (now - flickerTimer >= upTime) {
-                    slot2.setPosition(0.00);
+                    slot2.setPosition(0.00); //Original setting
                     flickerTimer = now;
                     flickerState++;
                 }
@@ -124,7 +147,8 @@ public class RealMeet3RedAuto extends OpMode {
 
             case 4: // Slot 3 up
                 if (now - flickerTimer >= downTime) {
-                    slot3.setPosition(0.65);
+                    //slot3.setPosition(0.65); //Original setting
+                    slot3.setPosition(0.75);
                     flickerTimer = now;
                     flickerState++;
                 }
@@ -132,7 +156,7 @@ public class RealMeet3RedAuto extends OpMode {
 
             case 5: // Slot 3 down
                 if (now - flickerTimer >= upTime) {
-                    slot3.setPosition(0.1);
+                    slot3.setPosition(0.1); //Original setting
                     flickerActive = false; // DONE
                 }
                 break;
@@ -241,7 +265,7 @@ public class RealMeet3RedAuto extends OpMode {
 
     public void init(){
         follower = Constants.createFollower(hardwareMap);
-        paths = new RealMeet3RedAuto.Paths(follower);
+        paths = new RealMeet3_v2RedNearAuto.Paths(follower);
         follower.setStartingPose(new Pose(123.5, 127, Math.toRadians(35.5)));
         intake=hardwareMap.get(DcMotor.class,"intakemotor");
         intake2=hardwareMap.get(Servo.class, "intake2servo");
@@ -297,35 +321,68 @@ public class RealMeet3RedAuto extends OpMode {
         }
 
 
-
-        try {
-            autonomousPathUpdate();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
         LLResult resultsofpooe = limelight.getLatestResult();
         boolean doesiseeitfoundboi = false;
 
         if (resultsofpooe != null && resultsofpooe.isValid()) {
             List<LLResultTypes.FiducialResult> fiducialResults2 = resultsofpooe.getFiducialResults();
             for (LLResultTypes.FiducialResult fr : fiducialResults2) {
-                double tx = fr.getTargetXDegrees();
+                limelight_tx = fr.getTargetXDegrees();
+                limelight_ty = fr.getTargetYDegrees();
+
                 if(fr.getFiducialId()>0) {
-                    derivativeTx = 1000000000.0*(tx-lastTx)/(System.nanoTime()-lastTimeUpdated);
-                    turretmotor.setPower(pPID * tx + dPID * derivativeTx); //TxValue
+                    derivativeTx = 1000000000.0*(limelight_tx-lastTx)/(System.nanoTime()-lastTimeUpdated);
+                    turretmotor.setPower(pPID * limelight_tx + dPID * derivativeTx); //TxValue
                     doesiseeitfoundboi = true;
-                    lastTx = tx;
+                    lastTx = limelight_tx;
                     lastTimeUpdated = System.nanoTime();
+
+                    autoShoot.advancedMathematics(limelight_ty);
+                    this.shooterPowerValue = autoShoot.getFlywheelPower();
+                    this.servoPositionValue = autoShoot.getAnglePosition();
+                    flywheel.setPower(shooterPowerValue);
+                    hoodservo.setPosition(this.servoPositionValue);
+
                     break;
                 }
             }
         }
         if (!doesiseeitfoundboi) {
             turretmotor.setPower(0);
-            telemetry.addData("Limelight", "No data available");
+            limelightMessage = "No data available";
+        } else {
+            limelightMessage = "Data available";
         }
+
+        try {
+            autonomousPathUpdate();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        telemetry.addData("----- Auto Path -----", null);
+        telemetry.addData("CurrentPath(autoPath): ", autoPath);
+
+        telemetry.addData("----- Shooter Data -----", null);
+        telemetry.addData("AutoShoot(FlyWheel Power): ", this.shooterPowerValue);
+        telemetry.addData("AutoShoot(Hood Position): ", this.servoPositionValue);
+
+        telemetry.addData("----- Limelight Data -----", null);
+        telemetry.addData("Limelight: ", limelightMessage);
+        telemetry.addData("LimeLight(ty): ", limelight_ty);
+        telemetry.addData("LimeLight(tx): ", limelight_tx);
+
+        telemetry.addData("Timer (s)", timer.seconds());
+        telemetry.update();
+
+
     }
     public void autonomousPathUpdate() throws InterruptedException {
+        autoShoot.advancedMathematics(limelight_ty);
+        this.shooterPowerValue = autoShoot.getFlywheelPower();
+        this.servoPositionValue = autoShoot.getAnglePosition();
+        flywheel.setPower(shooterPowerValue);
+        hoodservo.setPosition(this.servoPositionValue);
 
         switch (pathState) {
 
