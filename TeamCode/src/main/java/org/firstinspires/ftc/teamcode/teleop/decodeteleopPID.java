@@ -103,6 +103,7 @@ public class decodeteleopPID extends OpMode {
     double servo_value = 0.5;
     String limelightMessage = "No data available";
     String autoShootMessage = "At Init";
+    String motifPattern = "xxx";
 
 
     double deadzone = 0.05;
@@ -174,7 +175,6 @@ public class decodeteleopPID extends OpMode {
         telemetry.addData("Status", "Initialized");
         telemetry.update();
     }
-
     public void frontLeft(double power){
         if (power > 1){
             power = 1;
@@ -489,6 +489,12 @@ public class decodeteleopPID extends OpMode {
 //                    break;
 
 
+                } else if(fr.getFiducialId()==21){
+                    motifPattern = "GPP";
+                } else if(fr.getFiducialId()==22){
+                    motifPattern = "PGP";
+                } else if (fr.getFiducialId()==23){
+                    motifPattern = "PPG";
                 }
 
             }
@@ -540,6 +546,7 @@ public class decodeteleopPID extends OpMode {
         telemetry.addData("AutoShoot(Hood Position): ", servoPositionValue);
         telemetry.addData("AutoShoot(a Button): ", gamepad2.a);
         telemetry.addData("AutoShoot(a Button WasPressed): ", aButtonWasPressed);
+        telemetry.addData("MotifPattern: ", motifPattern);
 
         telemetry.addData("----- Limelight Data -----", null);
         telemetry.addData("Limelight: ", limelightMessage);
