@@ -4,39 +4,61 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
+import com.qualcomm.robotcore.hardware.Servo;
+
+import java.util.EnumMap;
+
 
 @TeleOp(name = "RevColor3Sensors")
 public class RevColorPurpleGreen extends LinearOpMode {
+    public enum ColorType {
+        GREEN, PURPLE, UNKNOWN
+    }
 
-    private static final String SENSOR_1_NAME = "ColorL";
-    private static final String SENSOR_2_NAME = "ColorR";
-    private static final String SENSOR_3_NAME = "ColorB";
+//    private static final String SENSOR_1_NAME = "color1";
+    private static final String SENSOR_2_NAME = "color2";
+    private static final String SENSOR_3_NAME = "color3";
 
-    private NormalizedColorSensor colorL;
-    private NormalizedColorSensor colorR;
-    private NormalizedColorSensor colorB;
+//    private NormalizedColorSensor color1;
+    private NormalizedColorSensor color2;
+    private NormalizedColorSensor color3;
+
+    Servo led = hardwareMap.get(Servo.class,"indicator");
+
 
     @Override
-    public void runOpMode() {
+    public void runOpMode() throws InterruptedException {
 
-        colorL = hardwareMap.get(NormalizedColorSensor.class, SENSOR_1_NAME);
-        colorR = hardwareMap.get(NormalizedColorSensor.class, SENSOR_2_NAME);
-        colorB = hardwareMap.get(NormalizedColorSensor.class, SENSOR_3_NAME);
+//        color1 = hardwareMap.get(NormalizedColorSensor.class, SENSOR_1_NAME);
+        color2 = hardwareMap.get(NormalizedColorSensor.class, SENSOR_2_NAME);
+        color3 = hardwareMap.get(NormalizedColorSensor.class, SENSOR_3_NAME);
+
+        EnumMap<colorIndicator.Slot, colorIndicator.ColorType> colors = new EnumMap<>(colorIndicator.Slot.class);
+
+        IndicatorBlinker blinker = new IndicatorBlinker(this,led);
 
         waitForStart();
 
         while (opModeIsActive()) {
 
-            detectAndTelemetry(colorL, "colorL");
-            detectAndTelemetry(colorR, "colorR");
-            detectAndTelemetry(colorB, "colorB");
+//            detectAndTelemetry(color1, "color1");
+            colorIndicator.ColorType left = detectAndTelemetry(color2, "color2");
+            colorIndicator.ColorType back = detectAndTelemetry(color3, "color3");
+            colorIndicator.ColorType right = colorIndicator.inferRight(left,back);
+            colorIndicator.Slot[] order = colorIndicator.computeOrder(left,back,colorIndicator.OrderPolicy.PURPLES_THEN_GREENS);
+            colors.put(colorIndicator.Slot.LEFT,left);
+            colors.put(colorIndicator.Slot.BACK,back);
+            colors.put(colorIndicator.Slot.RIGHT,right);
+            blinker.blinkSequence(order,colors,500,100,5);
+
+            blinker.stop();
 
             telemetry.update();
             sleep(50);
         }
     }
 
-    private void detectAndTelemetry(NormalizedColorSensor sensor, String name) {
+    private colorIndicator.ColorType detectAndTelemetry(NormalizedColorSensor sensor, String name) {
 
         NormalizedRGBA rgba = sensor.getNormalizedColors();
 
@@ -65,10 +87,16 @@ public class RevColorPurpleGreen extends LinearOpMode {
                         bn > 0.40 &&
                         gn < 0.35 &&
                         Math.abs(rn - bn) < 0.30;
-
         telemetry.addLine("Sensor " + name + ":");
         telemetry.addData("  green", isGreen);
         telemetry.addData("  purple", isPurple);
+
+        if (isPurple == isGreen) {
+            return colorIndicator.ColorType.UNKNOWN;   // both true OR both false
+        }
+        return isPurple ? colorIndicator.ColorType.PURPLE : colorIndicator.ColorType.GREEN;
+
+
     }
 
     private double clamp01(float v) {

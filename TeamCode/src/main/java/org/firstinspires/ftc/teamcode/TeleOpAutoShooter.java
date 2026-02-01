@@ -47,6 +47,12 @@ public class TeleOpAutoShooter extends OpMode {
     double limelight_ty = 0;
     boolean targetVisible = false;
 
+    // Turret PID variables
+    double lastTx = 0;
+    long lastTimeUpdated = System.nanoTime();
+    double pPID = 0.01; // adjust as needed
+    double dPID = 0.0005; // adjust as needed
+
     // ================= MOSAIC SHOOT =================
     enum ShootState { IDLE, SHOT_1, SHOT_2, SHOT_3 }
     ShootState shootState = ShootState.IDLE;
@@ -109,30 +115,41 @@ public class TeleOpAutoShooter extends OpMode {
         motor_backLeft.setPower(vx - vy + o);
         motor_backRight.setPower(vx + vy - o);
 
-        // ---------- LIMELIGHT APRILTAG ----------
-        targetVisible = false;
-        LLResult result = lookylookyseesee.getLatestResult();
+        // ---------- LIMELIGHT APRILTAG & TURRET ----------
+        boolean doesiseeitfoundboi = false;
+        LLResult resultsofpooe = lookylookyseesee.getLatestResult();
 
-        if (result != null && result.isValid()) {
-            List<LLResultTypes.FiducialResult> fiducials = result.getFiducialResults();
-            for (LLResultTypes.FiducialResult fr : fiducials) {
+        if (resultsofpooe != null && resultsofpooe.isValid()) {
+            for (LLResultTypes.FiducialResult fr : resultsofpooe.getFiducialResults()) {
 
                 limelight_tx = fr.getTargetXDegrees();
                 limelight_ty = fr.getTargetYDegrees();
 
-                // ===== BLUE APRILTAG ID =====
                 if (fr.getFiducialId() == 20) {
-                    targetVisible = true;
+                    doesiseeitfoundboi = true;
 
-                    // Example: PURPLE PURPLE GREEN
-                    shootOrder = colorIndicator.computeOrder(
-                            colorIndicator.ColorType.PURPLE,
-                            colorIndicator.ColorType.PURPLE,
-                            colorIndicator.OrderPolicy.PHYSICAL_LBR
-                    );
+                    // Turret PID control
+                    double derivativeTx = 1000000000.0 * (limelight_tx - lastTx) / (System.nanoTime() - lastTimeUpdated);
+                    poopeemotorey.setPower(pPID * limelight_tx + dPID * derivativeTx);
+                    lastTx = limelight_tx;
+                    lastTimeUpdated = System.nanoTime();
+
+                    // Setup shoot order for mosaic
+                    if (shootOrder == null) {
+                        shootOrder = colorIndicator.computeOrder(
+                                colorIndicator.ColorType.PURPLE,
+                                colorIndicator.ColorType.PURPLE,
+                                colorIndicator.OrderPolicy.PHYSICAL_LBR
+                        );
+                    }
+
+                    break; // stop after first matching fiducial
                 }
             }
         }
+
+        targetVisible = doesiseeitfoundboi;
+        telemetry.addData("Limelight Status", doesiseeitfoundboi ? "Data is available" : "No data available");
 
         // ---------- START SHOOT (ONE BUTTON) ----------
         boolean shootPressed = gamepad2.a;
