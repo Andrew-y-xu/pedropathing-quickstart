@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.limelightvision.LLResult;
@@ -15,15 +16,13 @@ import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import org.firstinspires.ftc.teamcode.hardware.AutoShooter;
 import org.firstinspires.ftc.teamcode.colorIndicator;
 
-import java.util.List;
-
 @TeleOp(name = "BlueTeleop_MosaicShoot")
 public class TeleOpAutoShooter extends OpMode {
 
     // ================= HARDWARE =================
-    DcMotor testmotor;
+    DcMotor testmotor;       // flywheel (assumed)
     DcMotor intakemotor;
-    DcMotor poopeemotorey;
+    DcMotor poopeemotorey;   // turret
 
     DcMotorEx motor_frontLeft;
     DcMotorEx motor_frontRight;
@@ -47,11 +46,11 @@ public class TeleOpAutoShooter extends OpMode {
     double limelight_ty = 0;
     boolean targetVisible = false;
 
-    // Turret PID variables
+    // Turret PD variables
     double lastTx = 0;
     long lastTimeUpdated = System.nanoTime();
-    double pPID = 0.01; // adjust as needed
-    double dPID = 0.0005; // adjust as needed
+    double pPID = 0.01;   // tune
+    double dPID = 0.0005; // tune
 
     // ================= MOSAIC SHOOT =================
     enum ShootState { IDLE, SHOT_1, SHOT_2, SHOT_3 }
@@ -86,13 +85,30 @@ public class TeleOpAutoShooter extends OpMode {
         lookylookyseesee.pipelineSwitch(0);
         lookylookyseesee.start();
 
+        // Directions
         testmotor.setDirection(DcMotorSimple.Direction.REVERSE);
         intakemotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         motor_frontLeft.setDirection(DcMotor.Direction.REVERSE);
         motor_backRight.setDirection(DcMotor.Direction.REVERSE);
         motor_backLeft.setDirection(DcMotor.Direction.REVERSE);
+        // poopeemotorey direction: set as needed depending on turret polarity
+        // poopeemotorey.setDirection(DcMotorSimple.Direction.FORWARD);
 
+        // Modes & behaviors (explicit for safety)
+        motor_frontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motor_frontRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motor_backLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motor_backRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        poopeemotorey.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        motor_frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motor_frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motor_backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motor_backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        poopeemotorey.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        // Initial servo positions (tune to your hardware)
         liftservo.setPosition(0.0);
         lift2servo.setPosition(0.745);
         lift3servo.setPosition(0.1);
@@ -128,13 +144,19 @@ public class TeleOpAutoShooter extends OpMode {
                 if (fr.getFiducialId() == 20) {
                     doesiseeitfoundboi = true;
 
-                    // Turret PID control
-                    double derivativeTx = 1000000000.0 * (limelight_tx - lastTx) / (System.nanoTime() - lastTimeUpdated);
-                    poopeemotorey.setPower(pPID * limelight_tx + dPID * derivativeTx);
+                    // Turret PD control with derivative guard & power clamp
+                    long now = System.nanoTime();
+                    long dt = now - lastTimeUpdated;
+                    if (dt > 0) {
+                        double derivativeTx = 1e9 * (limelight_tx - lastTx) / dt; // deg/sec
+                        double control = pPID * limelight_tx + dPID * derivativeTx;
+                        control = Range.clip(control, -0.6, 0.6); // clamp to safe speed
+                        poopeemotorey.setPower(control);
+                    }
                     lastTx = limelight_tx;
-                    lastTimeUpdated = System.nanoTime();
+                    lastTimeUpdated = now;
 
-                    // Setup shoot order for mosaic
+                    // Setup shoot order for mosaic (once we see the tag)
                     if (shootOrder == null) {
                         shootOrder = colorIndicator.computeOrder(
                                 colorIndicator.ColorType.PURPLE,
@@ -156,6 +178,7 @@ public class TeleOpAutoShooter extends OpMode {
 
         if (shootPressed && !shootButtonWasPressed
                 && shootOrder != null
+                && shootOrder.length >= 3
                 && shootState == ShootState.IDLE
                 && targetVisible) {
 
@@ -166,30 +189,32 @@ public class TeleOpAutoShooter extends OpMode {
         shootButtonWasPressed = shootPressed;
 
         // ---------- SHOOT SEQUENCE ----------
-        if (shootState != ShootState.IDLE) {
+        if (shootState != ShootState.IDLE && shootOrder != null && shootIndex < shootOrder.length) {
 
-            Servo activeFlicker = null;
             colorIndicator.Slot slot = shootOrder[shootIndex];
+            Servo activeFlicker =
+                    (slot == colorIndicator.Slot.LEFT)  ? lift2servo :
+                            (slot == colorIndicator.Slot.BACK)  ? liftservo  :
+                                    (slot == colorIndicator.Slot.RIGHT) ? lift3servo : null;
 
-            if (slot == colorIndicator.Slot.LEFT)  activeFlicker = lift2servo;
-            if (slot == colorIndicator.Slot.BACK)  activeFlicker = liftservo;
-            if (slot == colorIndicator.Slot.RIGHT) activeFlicker = lift3servo;
+            if (activeFlicker != null) {
+                double t = shootTimer.milliseconds();
 
-            double t = shootTimer.milliseconds();
+                if (t < 250) {
+                    activeFlicker.setPosition(0.60); // kick up
+                } else if (t < 450) {
+                    activeFlicker.setPosition(0.00); // back down
+                } else {
+                    shootIndex++;
+                    shootTimer.reset();
 
-            if (t < 250) {
-                activeFlicker.setPosition(0.60); // kick up
-            }
-            else if (t < 450) {
-                activeFlicker.setPosition(0.00); // back down
-            }
-            else {
-                shootIndex++;
-                shootTimer.reset();
-
-                if (shootIndex == 1) shootState = ShootState.SHOT_2;
-                else if (shootIndex == 2) shootState = ShootState.SHOT_3;
-                else shootState = ShootState.IDLE;
+                    if      (shootIndex == 1) shootState = ShootState.SHOT_2;
+                    else if (shootIndex == 2) shootState = ShootState.SHOT_3;
+                    else                      shootState = ShootState.IDLE;
+                }
+            } else {
+                // Unknown slot: abort sequence safely
+                shootState = ShootState.IDLE;
             }
         }
 
@@ -200,6 +225,7 @@ public class TeleOpAutoShooter extends OpMode {
             hoodservo.setPosition(autoShoot.getAnglePosition());
         } else {
             testmotor.setPower(0);
+            // Optionally park hood: hoodservo.setPosition( /* your parked pos */ );
         }
 
         // ---------- TELEMETRY ----------
