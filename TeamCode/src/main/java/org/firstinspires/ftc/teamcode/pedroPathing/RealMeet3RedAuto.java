@@ -89,14 +89,16 @@ public class RealMeet3RedAuto extends OpMode {
         switch (flickerState) {
 
             case 0: // Slot 1 up
-                slot1.setPosition(0.20);
+                slot3.setPosition(0.65);
+
                 flickerTimer = now;
                 flickerState++;
                 break;
 
             case 1: // Slot 1 down
                 if (now - flickerTimer >= upTime) {
-                    slot1.setPosition(0.745);
+
+                    slot3.setPosition(0.1);
                     flickerTimer = now;
                     flickerState++;
                 }
@@ -104,6 +106,7 @@ public class RealMeet3RedAuto extends OpMode {
 
             case 2: // Slot 2 up
                 if (now - flickerTimer >= downTime) {
+
                     slot2.setPosition(0.65);
                     flickerTimer = now;
                     flickerState++;
@@ -112,7 +115,8 @@ public class RealMeet3RedAuto extends OpMode {
 
             case 3: // Slot 2 down
                 if (now - flickerTimer >= upTime) {
-                    slot2.setPosition(0.00);
+
+                    slot2.setPosition(0);
                     flickerTimer = now;
                     flickerState++;
                 }
@@ -120,7 +124,7 @@ public class RealMeet3RedAuto extends OpMode {
 
             case 4: // Slot 3 up
                 if (now - flickerTimer >= downTime) {
-                    slot3.setPosition(0.65);
+                    slot1.setPosition(0.2);
                     flickerTimer = now;
                     flickerState++;
                 }
@@ -128,7 +132,7 @@ public class RealMeet3RedAuto extends OpMode {
 
             case 5: // Slot 3 down
                 if (now - flickerTimer >= upTime) {
-                    slot3.setPosition(0.1);
+                    slot1.setPosition(0.745);
                     flickerActive = false; // DONE
                 }
                 break;
@@ -257,8 +261,11 @@ public class RealMeet3RedAuto extends OpMode {
 
 
     }
-    public void loop(){
+    public void start(){
         flywheel.setPower(0.61);
+    }
+    public void loop(){
+
         follower.update();
         updateFlicker();
         //updateIntakePulse();
