@@ -51,9 +51,12 @@ public class tuningAutoShootTeleop extends OpMode {
     DcMotorEx motor_frontRight;
     DcMotorEx motor_backLeft;
     DcMotorEx motor_backRight;
-    Servo liftservo;
-    Servo lift2servo;
-    Servo lift3servo;
+    //Servo liftservo;
+    //Servo lift2servo;
+    //Servo lift3servo;
+    Servo leftLiftServo;
+    Servo rightLiftServo;
+    Servo backLiftServo;
     Servo hoodservo; //--- Added for AutoShoot
 
 //    Servo aimservo;
@@ -156,9 +159,9 @@ public class tuningAutoShootTeleop extends OpMode {
         motor_backRight.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 
 
-        liftservo = hardwareMap.get(Servo.class, "lift2");
-        lift2servo = hardwareMap.get(Servo.class, "lift1");
-        lift3servo = hardwareMap.get(Servo.class, "lift3");
+        leftLiftServo = hardwareMap.get(Servo.class, "lift2");
+        rightLiftServo = hardwareMap.get(Servo.class, "lift1");
+        backLiftServo = hardwareMap.get(Servo.class, "lift3");
         //       aimservo = hardwareMap.get(Servo.class, "aimservo");
 //        convey = hardwareMap.get(Servo.class, "convey");
 
@@ -168,9 +171,9 @@ public class tuningAutoShootTeleop extends OpMode {
         //liftservo.setPosition(0.05); //0.05
         //lift2servo.setPosition(0.745); //0.745
         //lift3servo.setPosition(0.1);
-        liftservo.setPosition(leftFlickerDownPosition); //0.05
-        lift2servo.setPosition(rightFlickerDownPosition); //0.745
-        lift3servo.setPosition(backFlickerDownPosition);
+        leftLiftServo.setPosition(leftFlickerDownPosition); //0.05
+        rightLiftServo.setPosition(rightFlickerDownPosition); //0.745
+        backLiftServo.setPosition(backFlickerDownPosition);
         //       aimservo.setPosition(0.5);
 
 
@@ -319,6 +322,7 @@ public class tuningAutoShootTeleop extends OpMode {
 //            }
 //        }
 
+
         //if (gamepad2.dpad_left  && !cycleRunning) { cycleRunning = true; cycleMode = 1; cycleStartTime = timer.milliseconds(); }
         //if (gamepad2.dpad_right && !cycleRunning) { cycleRunning = true; cycleMode = 2; cycleStartTime = timer.milliseconds(); }
         //if (gamepad2.dpad_down && !cycleRunning) { cycleRunning = true; cycleMode = 3; cycleStartTime = timer.milliseconds(); }
@@ -330,21 +334,23 @@ public class tuningAutoShootTeleop extends OpMode {
             double t = timer.milliseconds() - cycleStartTime;
 
             if (cycleMode == 1) {
-                if (t < 300) liftservo.setPosition(0.55); //0.55
-                else if (t < 500) liftservo.setPosition(0.05); //0.05
+                if (t < 300) leftLiftServo.setPosition(0.55); //0.55
+                else if (t < 500) leftLiftServo.setPosition(0.05); //0.05
                 else { cycleRunning = false; cycleMode = 0; }
             }
             else if (cycleMode == 2) {
-                if (t < 300) lift2servo.setPosition(0.30); //0.30
-                else if (t < 500) lift2servo.setPosition(0.745);  //0.745
+                if (t < 300) rightLiftServo.setPosition(0.30); //0.30
+                else if (t < 500) rightLiftServo.setPosition(rightFlickerDownPosition);  //0.745
                 else { cycleRunning = false; cycleMode = 0; }
             }
             else if (cycleMode == 3) {
-                if (t < 300) lift3servo.setPosition(0.55);
-                else if (t < 500) lift3servo.setPosition(0.1);
+                if (t < 300) backLiftServo.setPosition(0.55);
+                else if (t < 500) backLiftServo.setPosition(backFlickerDownPosition);
                 else { cycleRunning = false; cycleMode = 0; }
             }
         }
+
+
 
         /***************************/
         /**** Intake ***/
