@@ -351,13 +351,15 @@ public class Meet4_v2RedNearAuto extends OpMode {
 
             case 1: // wait for Path1 to finish (now standing still at hub)
                 if (!follower.isBusy()) {
-                    startFlicker();
+                    autoFlicker.start();
+                    //startFlicker();
                     pathState = 101;
                 }
                 break;
 
             case 101: // wait for flicker to finish, then go to Path2
-                if (flickerDone()) {
+                //if (flickerDone()) {
+                if (autoFlicker.done()) {
                     flywheel.setPower(0.61);
                     intakeMode = IntakeMode.INTAKE;
                     follower.setMaxPower(0.75);
@@ -386,13 +388,15 @@ public class Meet4_v2RedNearAuto extends OpMode {
             // ---- Arrived at hub again -> flick -> then Path5 ----
             case 4:
                 if (!follower.isBusy()) { // standing still at hub
-                    startFlicker();
+                    autoFlicker.start();
+                    //startFlicker();
                     pathState = 401;
                 }
                 break;
 
             case 401:
-                if (flickerDone()) {
+                //if (flickerDone()) {
+                if (autoFlicker.done()) {
                     intakeMode = IntakeMode.INTAKE;
                     follower.setMaxPower(0.75);
                     follower.followPath(paths.Path4, true);
@@ -412,13 +416,14 @@ public class Meet4_v2RedNearAuto extends OpMode {
             // ---- Arrived at hub -> flick -> then Path7 ----
             case 6:
                 if (!follower.isBusy()) { // standing still at hub
-                    startFlicker();
+                    autoFlicker.start();
+                    //startFlicker();
                     pathState = 601;
                 }
                 break;
 
             case 601:
-                if (flickerDone()) {
+                if (autoFlicker.done()) {
                     intakeMode = IntakeMode.INTAKE;
                     follower.setMaxPower(0.75);
                     follower.followPath(paths.Path6, true);
@@ -438,13 +443,14 @@ public class Meet4_v2RedNearAuto extends OpMode {
             // ---- Arrived at hub -> flick -> then Path9 ----
             case 8:
                 if (!follower.isBusy()) { // standing still at hub
-                    startFlicker();
+                    autoFlicker.start();
+                    //startFlicker();
                     pathState = 801;
                 }
                 break;
 
             case 801:
-                if (flickerDone()) {
+                if (autoFlicker.done()) {
                     pathState = 9;
                 }
                 break;
