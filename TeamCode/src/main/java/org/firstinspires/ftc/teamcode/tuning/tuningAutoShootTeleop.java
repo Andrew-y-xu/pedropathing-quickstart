@@ -105,6 +105,14 @@ public class tuningAutoShootTeleop extends OpMode {
     public double speed = 1.0;
     private ElapsedTime debounceTimer = new ElapsedTime();
 
+    double rightFlickerUpPosition = 0.20;
+    double leftFlickerUpPosition = 0.65;
+    double backFlickerUpPosition = 0.65;
+    double rightFlickerDownPosition = 0.745; //Flicker servo is in reverse
+    double leftFlickerDownPosition = 0.00;
+    double backFlickerDownPosition = 0.1;
+
+
     @Override
     public void init() {
         testmotor = hardwareMap.dcMotor.get("testemotor");
@@ -157,9 +165,12 @@ public class tuningAutoShootTeleop extends OpMode {
         testmotor.setDirection(DcMotorSimple.Direction.REVERSE);
         intakemotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        liftservo.setPosition(0.05); //0.05
-        lift2servo.setPosition(0.745); //0.745
-        lift3servo.setPosition(0.1);
+        //liftservo.setPosition(0.05); //0.05
+        //lift2servo.setPosition(0.745); //0.745
+        //lift3servo.setPosition(0.1);
+        liftservo.setPosition(leftFlickerDownPosition); //0.05
+        lift2servo.setPosition(rightFlickerDownPosition); //0.745
+        lift3servo.setPosition(backFlickerDownPosition);
         //       aimservo.setPosition(0.5);
 
 
