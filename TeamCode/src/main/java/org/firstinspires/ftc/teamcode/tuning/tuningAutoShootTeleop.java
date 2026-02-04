@@ -335,12 +335,14 @@ public class tuningAutoShootTeleop extends OpMode {
 
             if (cycleMode == 1) {
                 if (t < 300) leftLiftServo.setPosition(0.55); //0.55
-                else if (t < 500) leftLiftServo.setPosition(0.05); //0.05
+                //else if (t < 500) leftLiftServo.setPosition(0.05); //0.05
+                else if (t < 500) leftLiftServo.setPosition(0.06); //0.05
                 else { cycleRunning = false; cycleMode = 0; }
             }
             else if (cycleMode == 2) {
                 if (t < 300) rightLiftServo.setPosition(0.30); //0.30
-                else if (t < 500) rightLiftServo.setPosition(rightFlickerDownPosition);  //0.745
+                //else if (t < 500) rightLiftServo.setPosition(rightFlickerDownPosition);  //0.745
+                else if (t < 500) rightLiftServo.setPosition(0.750);  //0.745
                 else { cycleRunning = false; cycleMode = 0; }
             }
             else if (cycleMode == 3) {
