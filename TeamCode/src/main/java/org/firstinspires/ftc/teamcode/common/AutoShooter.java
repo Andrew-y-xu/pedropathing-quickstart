@@ -1,6 +1,4 @@
-package org.firstinspires.ftc.teamcode.hardware;
-
-import com.qualcomm.robotcore.util.Range;
+package org.firstinspires.ftc.teamcode.common;
 
 public class AutoShooter {
     private double distantTy;

@@ -39,7 +39,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.firstinspires.ftc.teamcode.hardware.AutoShooter;
+import org.firstinspires.ftc.teamcode.common.AutoShooter;
 
 @TeleOp(name="Tuning AutoShootTeleop")
 public class tuningAutoShootTeleop extends OpMode {
