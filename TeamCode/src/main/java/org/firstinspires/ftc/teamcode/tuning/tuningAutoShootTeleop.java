@@ -209,7 +209,9 @@ public class tuningAutoShootTeleop extends OpMode {
     @Override
     public void loop() {
         booleanIncrementer = 0;
+        boolean gamePad1xIsPressed = ifPressed(gamepad1.x);
         boolean gamePad1yIsPressed = ifPressed(gamepad1.y);
+
         //boolean gamePad1aIsPressed = ifPressed(gamepad1.a);
         //boolean gamePad1bIsPressed = ifPressed(gamepad1.b);
 
@@ -221,7 +223,7 @@ public class tuningAutoShootTeleop extends OpMode {
         double o = speed*(gamepad1.right_stick_x * (1 + gamepad1.left_trigger) * (1 - gamepad1.right_trigger));//*//some value;
 
         if (gamePad1yIsPressed){
-            speed = 0.7;
+            //speed = 0.7;
         }
         /*
         if (gamePad1bIsPressed){
@@ -437,7 +439,7 @@ public class tuningAutoShootTeleop extends OpMode {
 
         boolean gamePad1aIsPressed = ifPressed(gamepad1.a);
         boolean gamePad1bIsPressed = ifPressed(gamepad1.b);
-        //Options GamePad1
+        //Options GamePad1 (Start & Stop)
         if (gamepad1.a && !gamePad1aIsPressed) {
             autoShoot.startShooter();
             autoShootMessage = "Pressed and started";
@@ -445,6 +447,14 @@ public class tuningAutoShootTeleop extends OpMode {
         if (gamepad1.b && !gamePad1bIsPressed) {
             autoShoot.stopShooter();
             autoShootMessage = "Pressed and stopped";
+        }
+
+        //Set Power ( Speed UP & Down )
+        if (gamepad1.x && !gamePad1xIsPressed) {
+            autoShoot.setFlywheelPower(autoShoot.getFlywheelPower() + 0.05);
+        }
+        if (gamepad1.y && !gamePad1yIsPressed) {
+            autoShoot.setFlywheelPower(autoShoot.getFlywheelPower() - 0.05);
         }
 
 

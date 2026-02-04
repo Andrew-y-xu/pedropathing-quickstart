@@ -109,6 +109,13 @@ public class AutoShooter {
     public double getAnglePosition() {
         return this.hoodPositionValue;
     }
+
+    public void SetFlywheelPower(double power) {
+        this.shooterPowerValue = power;
+    }
+    public void SetAnglePosition(double position) {
+        this.hoodPositionValue = position;;
+    }
     public void setFlywheelPower(double power) {
         this.shooterPowerValue = power;
     }
