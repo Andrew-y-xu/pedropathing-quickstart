@@ -132,7 +132,7 @@ public class RealMeet3RedAuto extends OpMode {
 
             case 5: // Slot 3 down
                 if (now - flickerTimer >= upTime) {
-                    slot1.setPosition(0.745);
+                    slot1.setPosition(0.9);
                     flickerActive = false; // DONE
                 }
                 break;
@@ -229,7 +229,11 @@ public class RealMeet3RedAuto extends OpMode {
         OUTTAKE,
         OFF
     }
-
+    long flywheelStartTime;
+    boolean flywheelSpunUp = false;
+    long flywheelWaitStart = 0;
+    boolean flywheelReady = false;
+    boolean flywheelTimerStarted = false;
     private IntakeMode intakeMode = IntakeMode.INTAKE;
 
     public void init(){
@@ -254,7 +258,7 @@ public class RealMeet3RedAuto extends OpMode {
         slot1=hardwareMap.get(Servo.class,"lift1");
         slot2=hardwareMap.get(Servo.class,"lift2");
         slot3=hardwareMap.get(Servo.class,"lift3");
-        slot1.setPosition(0.745);
+        slot1.setPosition(0.9);
         slot2.setPosition(0.00);
         slot3.setPosition(0.1);
 
@@ -265,7 +269,6 @@ public class RealMeet3RedAuto extends OpMode {
         flywheel.setPower(0.61);
     }
     public void loop(){
-
         follower.update();
         updateFlicker();
         //updateIntakePulse();
@@ -332,10 +335,19 @@ public class RealMeet3RedAuto extends OpMode {
                 pathState = 1;
                 break;
 
-            case 1: // wait for Path1 to finish (now standing still at hub)
+            case 1:
                 if (!follower.isBusy()) {
-                    startFlicker();
-                    pathState = 101;
+
+                    if (!flywheelTimerStarted) {
+                        flywheelWaitStart = System.currentTimeMillis();
+                        flywheelTimerStarted = true;
+                    }
+
+                    if (System.currentTimeMillis() - flywheelWaitStart >= 1000) {
+                        flywheelReady = true;
+                        startFlicker();
+                        pathState = 101;
+                    }
                 }
                 break;
 

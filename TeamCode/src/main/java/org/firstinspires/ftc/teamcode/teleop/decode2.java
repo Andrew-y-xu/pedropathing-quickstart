@@ -166,7 +166,7 @@ public class decode2 extends OpMode {
         intakemotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         liftservo.setPosition(0.00); //0.05
-        lift2servo.setPosition(0.745); //0.745
+        lift2servo.setPosition(0.9); //0.9
         lift3servo.setPosition(0.1);
         //       aimservo.setPosition(0.5);
 
@@ -334,7 +334,7 @@ public class decode2 extends OpMode {
             }
             else if (cycleMode == 2) {
                 if (t < 300) lift2servo.setPosition(0.25); //0.30
-                else if (t < 500) lift2servo.setPosition(0.745);  //0.745
+                else if (t < 500) lift2servo.setPosition(0.9);  //0.9
                 else { cycleRunning = false; cycleMode = 0; }
             }
             else if (cycleMode == 3) {
@@ -530,7 +530,7 @@ public class decode2 extends OpMode {
                 testmotor.setPower(0.62);
             }
             if (gamepad2.right_bumper) {
-                testmotor.setPower(0.00);
+                testmotor.setPower(0.3);
             }
 
             double turretPower = 0.0; // DEFAULT = stop

@@ -36,15 +36,16 @@ public class RealMeet3BlueAuto extends OpMode {
     // Intake pulse state
     private boolean intakePulseActive = false;
     private long intakePulseStart = 0;
+    private boolean intakePulseEnabled = false;
 
     // tune this
-    private long intakePulseTime = 0; // ms
+    private long intakePulseTime = 600; // ms
     public void startIntakePulse() {
-        if (intakePulseActive) return;  // <-- add this
+        if (!intakePulseEnabled) return;
+        if (intakePulseActive) return;
 
         intakePulseActive = true;
         intakePulseStart = System.currentTimeMillis();
-
         intake.setPower(1);
         intake2.setPosition(0);
     }
@@ -88,14 +89,16 @@ public class RealMeet3BlueAuto extends OpMode {
         switch (flickerState) {
 
             case 0: // Slot 1 up
-                slot1.setPosition(0.20);
+                slot3.setPosition(0.65);
+
                 flickerTimer = now;
                 flickerState++;
                 break;
 
             case 1: // Slot 1 down
                 if (now - flickerTimer >= upTime) {
-                    slot1.setPosition(0.745);
+
+                    slot3.setPosition(0.1);
                     flickerTimer = now;
                     flickerState++;
                 }
@@ -103,6 +106,7 @@ public class RealMeet3BlueAuto extends OpMode {
 
             case 2: // Slot 2 up
                 if (now - flickerTimer >= downTime) {
+
                     slot2.setPosition(0.65);
                     flickerTimer = now;
                     flickerState++;
@@ -111,7 +115,8 @@ public class RealMeet3BlueAuto extends OpMode {
 
             case 3: // Slot 2 down
                 if (now - flickerTimer >= upTime) {
-                    slot2.setPosition(0.00);
+
+                    slot2.setPosition(0);
                     flickerTimer = now;
                     flickerState++;
                 }
@@ -119,7 +124,7 @@ public class RealMeet3BlueAuto extends OpMode {
 
             case 4: // Slot 3 up
                 if (now - flickerTimer >= downTime) {
-                    slot3.setPosition(0.65);
+                    slot1.setPosition(0.2);
                     flickerTimer = now;
                     flickerState++;
                 }
@@ -127,8 +132,8 @@ public class RealMeet3BlueAuto extends OpMode {
 
             case 5: // Slot 3 down
                 if (now - flickerTimer >= upTime) {
-                    slot3.setPosition(0.1);
-                    flickerActive = false; // DONEe
+                    slot1.setPosition(0.9);
+                    flickerActive = false; // DONE
                 }
                 break;
         }
@@ -150,26 +155,33 @@ public class RealMeet3BlueAuto extends OpMode {
         public PathChain Path6;
         public PathChain Path7;
 
+
         public Paths(Follower follower) {
             Path1 = follower.pathBuilder().addPath(
                             new BezierLine(
                                     new Pose(20.5, 127.000),
 
+
                                     new Pose(58.000, 83.500)
                             )
                     ).setConstantHeadingInterpolation(Math.toRadians(144.5))
 
+
                     .build();
+
 
             Path2 = follower.pathBuilder().addPath(
                             new BezierLine(
                                     new Pose(58.000, 83.500),
 
+
                                     new Pose(13.000, 83.500)
                             )
                     ).setTangentHeadingInterpolation()
 
+
                     .build();
+
 
             Path3 = follower.pathBuilder().addPath(
                             new BezierLine(
@@ -178,7 +190,9 @@ public class RealMeet3BlueAuto extends OpMode {
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
 
+
                     .build();
+
 
             Path4 = follower.pathBuilder().addPath(
                             new BezierCurve(
@@ -188,17 +202,22 @@ public class RealMeet3BlueAuto extends OpMode {
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
 
+
                     .build();
+
 
             Path5 = follower.pathBuilder().addPath(
                             new BezierLine(
                                     new Pose(10.000, 60.000),
 
+
                                     new Pose(58.000, 83.500)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
 
+
                     .build();
+
 
             Path6 = follower.pathBuilder().addPath(
                             new BezierCurve(
@@ -208,20 +227,26 @@ public class RealMeet3BlueAuto extends OpMode {
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
 
+
                     .build();
+
 
             Path7 = follower.pathBuilder().addPath(
                             new BezierLine(
                                     new Pose(10.000, 35.000),
 
+
                                     new Pose(58.000, 105.00)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
 
+
                     .build();
+
 
         }
     }
+
 
 
     enum IntakeMode {
@@ -229,7 +254,11 @@ public class RealMeet3BlueAuto extends OpMode {
         OUTTAKE,
         OFF
     }
-
+    long flywheelStartTime;
+    boolean flywheelSpunUp = false;
+    long flywheelWaitStart = 0;
+    boolean flywheelReady = false;
+    boolean flywheelTimerStarted = false;
     private IntakeMode intakeMode = IntakeMode.INTAKE;
 
     public void init(){
@@ -254,20 +283,19 @@ public class RealMeet3BlueAuto extends OpMode {
         slot1=hardwareMap.get(Servo.class,"lift1");
         slot2=hardwareMap.get(Servo.class,"lift2");
         slot3=hardwareMap.get(Servo.class,"lift3");
-        slot1.setPosition(0.745);
+        slot1.setPosition(0.9);
         slot2.setPosition(0.00);
         slot3.setPosition(0.1);
 
 
 
     }
-    public void loop(){
+    public void start(){
         flywheel.setPower(0.61);
+    }
+    public void loop(){
         follower.update();
         updateFlicker();
-        intake.setPower(-1);
-        intake2.setPosition(1);
-
         //updateIntakePulse();
 
         if (intakePulseActive) {
@@ -306,7 +334,7 @@ public class RealMeet3BlueAuto extends OpMode {
             List<LLResultTypes.FiducialResult> fiducialResults2 = resultsofpooe.getFiducialResults();
             for (LLResultTypes.FiducialResult fr : fiducialResults2) {
                 double tx = fr.getTargetXDegrees();
-                if(fr.getFiducialId() ==20) {
+                if(fr.getFiducialId() ==24) {
                     derivativeTx = 1000000000.0*(tx-lastTx)/(System.nanoTime()-lastTimeUpdated);
                     turretmotor.setPower(pPID * tx + dPID * derivativeTx); //TxValue
                     doesiseeitfoundboi = true;
@@ -332,17 +360,26 @@ public class RealMeet3BlueAuto extends OpMode {
                 pathState = 1;
                 break;
 
-            case 1: // wait for Path1 to finish (now standing still at hub)
+            case 1:
                 if (!follower.isBusy()) {
-                    startFlicker();
-                    pathState = 101;
+
+                    if (!flywheelTimerStarted) {
+                        flywheelWaitStart = System.currentTimeMillis();
+                        flywheelTimerStarted = true;
+                    }
+
+                    if (System.currentTimeMillis() - flywheelWaitStart >= 1000) {
+                        flywheelReady = true;
+                        startFlicker();
+                        pathState = 101;
+                    }
                 }
                 break;
 
             case 101: // wait for flicker to finish, then go to Path2
                 if (flickerDone()) {
                     flywheel.setPower(0.61);
-                    intakeMode = RealMeet3BlueAuto.IntakeMode.INTAKE;
+                    intakeMode = IntakeMode.INTAKE;
                     follower.setMaxPower(0.75);
                     follower.followPath(paths.Path2, true);
                     pathState = 2;
@@ -376,7 +413,7 @@ public class RealMeet3BlueAuto extends OpMode {
 
             case 401:
                 if (flickerDone()) {
-                    intakeMode = RealMeet3BlueAuto.IntakeMode.INTAKE;
+                    intakeMode = IntakeMode.INTAKE;
                     follower.setMaxPower(0.75);
                     follower.followPath(paths.Path4, true);
                     pathState = 5;
@@ -402,7 +439,7 @@ public class RealMeet3BlueAuto extends OpMode {
 
             case 601:
                 if (flickerDone()) {
-                    intakeMode = RealMeet3BlueAuto.IntakeMode.INTAKE;
+                    intakeMode = IntakeMode.INTAKE;
                     follower.setMaxPower(0.75);
                     follower.followPath(paths.Path6, true);
                     pathState = 7;
