@@ -50,7 +50,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import java.util.ArrayList;
 
-@TeleOp(name="Redteleopm3")
+@TeleOp(name="Red Teleop")
 public class decode2 extends OpMode {
 
     DcMotor testmotor;

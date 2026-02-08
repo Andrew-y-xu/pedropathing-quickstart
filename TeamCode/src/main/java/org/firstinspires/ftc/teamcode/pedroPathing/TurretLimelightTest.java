@@ -68,6 +68,7 @@ import java.util.List;
  *   below the name of the Limelight on the top level configuration screen.
  */
 @TeleOp(name = "TurretLimelightTest", group = "Sensor")
+@Disabled
 public class TurretLimelightTest extends LinearOpMode {
     DcMotor motor;
     private Limelight3A limelight;

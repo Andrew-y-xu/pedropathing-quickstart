@@ -53,12 +53,12 @@ public class AutoShooter {
             double powerBConstant = 0.588231;
 
             //always stay in range (0.30, 0.50)
-            double hoodPositionConstant = 0.40;
+            double hoodPositionConstant = 0.7;
 
             // Top small Triangle with distant(ty) greater than 2.5
             if( this.distantTy >= 2.5) {
-                this.calPowerValue = 0.66;
-                this.calHoodValue = 0.50; // 0.2 or 0.9
+                this.calPowerValue = 0.65;
+                this.calHoodValue = 0.8; // 0.2 or 0.9
             } else {
                 // Field large Triangle with distant(ty) under than 2.5
                 this.calPowerValue = (powerAConstant * this.distantTy) + powerBConstant +0.02;

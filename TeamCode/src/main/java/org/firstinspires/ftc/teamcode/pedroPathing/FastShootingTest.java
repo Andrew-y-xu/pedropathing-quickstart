@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 @TeleOp
+@Disabled
 public class FastShootingTest extends OpMode {
     Servo slot1,slot2,slot3;
     DcMotor flywheel;

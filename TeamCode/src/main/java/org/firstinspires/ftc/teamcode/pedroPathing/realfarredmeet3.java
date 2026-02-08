@@ -12,7 +12,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import java.util.List;
-@Autonomous
+@Autonomous(name="Far Red")
 public class realfarredmeet3 extends OpMode {
     DcMotor flywheel;
     Servo hoodservo;

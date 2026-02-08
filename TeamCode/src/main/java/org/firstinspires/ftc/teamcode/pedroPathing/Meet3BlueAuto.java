@@ -21,6 +21,7 @@ import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
 @Autonomous
+@Disabled
 public class Meet3BlueAuto extends OpMode{
     Map<Integer, Character> indexer = new HashMap<>();
     int shots=0;

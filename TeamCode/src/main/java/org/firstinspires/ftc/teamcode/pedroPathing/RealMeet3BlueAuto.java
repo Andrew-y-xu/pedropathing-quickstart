@@ -15,6 +15,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import java.util.List;
 @Autonomous
+@Disabled
 public class RealMeet3BlueAuto extends OpMode {
     DcMotor flywheel;
     Servo hoodservo;

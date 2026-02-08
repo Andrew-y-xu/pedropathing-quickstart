@@ -28,6 +28,7 @@ package org.firstinspires.ftc.teamcode.tuning;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -42,6 +43,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @TeleOp(name="Tuning AutoShootTeleop_v3")
+@Disabled
 public class tuningAutoShootTeleop_v3 extends OpMode {
 
     DcMotor testmotor;

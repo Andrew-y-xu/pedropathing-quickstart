@@ -13,7 +13,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import java.util.List;
-@Autonomous(name="RedAutoRLB")
+@Autonomous(name="Red Close")
 public class RedAutoAlternateOrder extends OpMode {
     DcMotor flywheel;
     Servo hoodservo;

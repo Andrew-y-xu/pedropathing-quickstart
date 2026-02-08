@@ -13,7 +13,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import java.util.List;
-@Autonomous(name="BlueAutoRLB")
+@Autonomous(name="Blue Close")
 public class BlueAutoAlternateOrder extends OpMode {
     DcMotor flywheel;
     Servo hoodservo;
@@ -168,12 +168,12 @@ public class BlueAutoAlternateOrder extends OpMode {
                     .build();
 
             Path2 = follower.pathBuilder()
-                    .addPath(new BezierLine(new Pose(58.000, 83.500), new Pose(18.000, 83.500)))
+                    .addPath(new BezierLine(new Pose(58.000, 83.500), new Pose(15.000, 83.500)))
                     .setTangentHeadingInterpolation()
                     .build();
 
             Path3 = follower.pathBuilder()
-                    .addPath(new BezierLine(new Pose(18, 83.5), new Pose(58.000, 83.500)))
+                    .addPath(new BezierLine(new Pose(15, 83.5), new Pose(58.000, 83.500)))
                     .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
                     .build();
 
@@ -269,11 +269,7 @@ public class BlueAutoAlternateOrder extends OpMode {
 
 
 
-        try {
-            autonomousPathUpdate();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+
         LLResult resultsofpooe = limelight.getLatestResult();
         boolean doesiseeitfoundboi = false;
 
@@ -297,6 +293,11 @@ public class BlueAutoAlternateOrder extends OpMode {
         } else {
             telemetry.addData("Limelight","Data available");
         }
+        try {
+            autonomousPathUpdate();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         telemetry.update();
     }
     public void autonomousPathUpdate() throws InterruptedException {
@@ -312,13 +313,16 @@ public class BlueAutoAlternateOrder extends OpMode {
 
             case 1:
                 if (!follower.isBusy()) {
-
+//                    LLResult resultsofpooe = limelight.getLatestResult();
+//                    while(resultsofpooe==null|| !(resultsofpooe.isValid())){
+//                        turretmotor.setPower(-0.15);
+//                    }
                     if (!flywheelTimerStarted) {
                         flywheelWaitStart = System.currentTimeMillis();
                         flywheelTimerStarted = true;
                     }
 
-                    if (System.currentTimeMillis() - flywheelWaitStart >= 1000) {
+                    if (System.currentTimeMillis() - flywheelWaitStart >= 2000) {
                         flywheelReady = true;
                         startFlicker();
                         pathState = 101;
