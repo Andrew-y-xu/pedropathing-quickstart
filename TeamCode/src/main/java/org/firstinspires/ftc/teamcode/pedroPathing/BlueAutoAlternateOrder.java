@@ -290,11 +290,12 @@ public class BlueAutoAlternateOrder extends OpMode {
                     break;
                 }
             }
-            telemetry.addData("Limelight","Data available");
         }
         if (!doesiseeitfoundboi) {
             turretmotor.setPower(0);
             telemetry.addData("Limelight", "No data available");
+        } else {
+            telemetry.addData("Limelight","Data available");
         }
         telemetry.update();
     }
