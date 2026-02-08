@@ -62,7 +62,7 @@ public class realfarbluemeet3 extends OpMode {
     // Startup delay for flywheel spin-up
     private boolean startupDelayActive = true;
     private long startupDelayStart = 0;
-    private long startupDelayTime = 4000; // ms (tune this)
+    private long startupDelayTime = 6000; // ms (tune this)
 
     /***************************/
 /**** Shooting Stuff ***/
@@ -99,7 +99,7 @@ public class realfarbluemeet3 extends OpMode {
 
             case 1: // Slot 1 down
                 if (now - flickerTimer >= upTime) {
-                    slot1.setPosition(0.745);
+                    slot1.setPosition(0.9);
                     flickerTimer = now;
                     flickerState++;
                 }
@@ -148,13 +148,12 @@ public class realfarbluemeet3 extends OpMode {
     public static class Paths {
         public PathChain Path1;
         public PathChain Path2;
-
         public Paths(Follower follower) {
             Path1 = follower.pathBuilder().addPath(
                             new BezierLine(
                                     new Pose(48.000, 8.000),
 
-                                    new Pose(-10.000, 8.000)
+                                    new Pose(-16.000, 8.000)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
 
@@ -162,7 +161,7 @@ public class realfarbluemeet3 extends OpMode {
 
             Path2 = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(-10.000, 8.000),
+                                    new Pose(-16.000, 8.000),
 
                                     new Pose(48.000, 8.000)
                             )
@@ -192,7 +191,7 @@ public class realfarbluemeet3 extends OpMode {
         turretmotor = hardwareMap.get(DcMotor.class, "turretmotor");
         flywheel=hardwareMap.get(DcMotor.class,"testemotor");
         hoodservo = hardwareMap.get(Servo.class, "hood");
-        hoodservo.setPosition(0.91);
+        hoodservo.setPosition(0.8);
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         limelight.pipelineSwitch(0);
         limelight.start();
@@ -212,7 +211,7 @@ public class realfarbluemeet3 extends OpMode {
     }
     public void loop(){
         follower.update();
-        flywheel.setPower(0.65);
+        flywheel.setPower(0.67);
         updateFlicker();
         //updateIntakePulse();
 
@@ -287,7 +286,7 @@ public class realfarbluemeet3 extends OpMode {
                     intakeMode = realfarbluemeet3.IntakeMode.INTAKE;
                     follower.setMaxPower(0.75);
                     follower.followPath(paths.Path1, true);
-                    pathState = 2;
+                        pathState = 2;
                 }
                 break;
 
