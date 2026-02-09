@@ -183,7 +183,7 @@ public class BlueAutoAlternateOrder extends OpMode {
                     .build();
 
             Path5 = follower.pathBuilder()
-                    .addPath(new BezierLine(new Pose(11.5000, 60.000), new Pose(58.000, 83.500)))
+                    .addPath(new BezierCurve(new Pose(11.5000, 60.000), new Pose(50,54), new Pose(58.00, 83.500)))
                     .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
                     .build();
 
@@ -306,7 +306,7 @@ public class BlueAutoAlternateOrder extends OpMode {
 
             // ---- Go to hub (ends at shared point), then flick, then leave ----
             case 0:
-                flywheel.setPower(0.6);
+                flywheel.setPower(0.63);
                 follower.followPath(paths.Path1);
                 pathState = 1;
                 break;
@@ -332,7 +332,7 @@ public class BlueAutoAlternateOrder extends OpMode {
 
             case 101: // wait for flicker to finish, then go to Path2
                 if (flickerDone()) {
-                    flywheel.setPower(0.48);
+                    flywheel.setPower(0.54);
                     intakeMode = IntakeMode.INTAKE;
                     follower.setMaxPower(0.75);
                     follower.followPath(paths.Path2, true);

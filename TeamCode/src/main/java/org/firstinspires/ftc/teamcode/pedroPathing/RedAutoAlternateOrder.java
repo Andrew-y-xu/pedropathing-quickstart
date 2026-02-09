@@ -199,9 +199,9 @@ public class RedAutoAlternateOrder extends OpMode {
                     .build();
 
             Path5 = follower.pathBuilder().addPath(
-                            new BezierLine(
+                            new BezierCurve(
                                     new Pose(133.5000, 58.000),
-
+                                    new Pose(94,54),
                                     new Pose(86.000, 83.500)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
@@ -335,7 +335,7 @@ public class RedAutoAlternateOrder extends OpMode {
 
             // ---- Go to hub (ends at shared point), then flick, then leave ----
             case 0:
-                flywheel.setPower(0.6);
+                flywheel.setPower(0.63);
                 follower.followPath(paths.Path1);
                 pathState = 1;
                 break;
@@ -358,7 +358,7 @@ public class RedAutoAlternateOrder extends OpMode {
 
             case 101: // wait for flicker to finish, then go to Path2
                 if (flickerDone()) {
-                    flywheel.setPower(0.48);
+                    flywheel.setPower(0.54);
                     intakeMode = IntakeMode.INTAKE;
                     follower.setMaxPower(0.75);
                     follower.followPath(paths.Path2, true);
