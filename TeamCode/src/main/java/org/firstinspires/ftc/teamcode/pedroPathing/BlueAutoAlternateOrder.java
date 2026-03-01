@@ -95,7 +95,7 @@ public class BlueAutoAlternateOrder extends OpMode {
         switch (flickerState) {
 
             case 0: // Slot 1 up
-                slot1.setPosition(0.2);
+                slot1.setPosition(0.47);
 
                 flickerTimer = now;
                 flickerState++;
@@ -104,7 +104,7 @@ public class BlueAutoAlternateOrder extends OpMode {
             case 1: // Slot 1 down
                 if (now - flickerTimer >= upTime) {
 
-                    slot1.setPosition(0.9);
+                    slot1.setPosition(0.98);
                     flickerTimer = now;
                     flickerState++;
                 }
@@ -113,7 +113,7 @@ public class BlueAutoAlternateOrder extends OpMode {
             case 2: // Slot 2 up
                 if (now - flickerTimer >= downTime) {
 
-                    slot2.setPosition(0.65);
+                    slot2.setPosition(0.58);
                     flickerTimer = now;
                     flickerState++;
                 }
@@ -122,7 +122,7 @@ public class BlueAutoAlternateOrder extends OpMode {
             case 3: // Slot 2 down
                 if (now - flickerTimer >= upTime) {
 
-                    slot2.setPosition(0);
+                    slot2.setPosition(0.05);
                     flickerTimer = now;
                     flickerState++;
                 }
@@ -130,7 +130,7 @@ public class BlueAutoAlternateOrder extends OpMode {
 
             case 4: // Slot 3 up
                 if (now - flickerTimer >= downTime) {
-                    slot3.setPosition(0.65);
+                    slot3.setPosition(0.63);
                     flickerTimer = now;
                     flickerState++;
                 }
@@ -138,7 +138,7 @@ public class BlueAutoAlternateOrder extends OpMode {
 
             case 5: // Slot 3 down
                 if (now - flickerTimer >= upTime) {
-                    slot3.setPosition(0.1);
+                    slot3.setPosition(0.12);
                     flickerActive = false; // DONE
                 }
                 break;
@@ -233,9 +233,9 @@ public class BlueAutoAlternateOrder extends OpMode {
         slot1=hardwareMap.get(Servo.class,"lift1");
         slot2=hardwareMap.get(Servo.class,"lift2");
         slot3=hardwareMap.get(Servo.class,"lift3");
-        slot1.setPosition(0.9);
-        slot2.setPosition(0.00);
-        slot3.setPosition(0.1);
+        slot1.setPosition(0.98);
+        slot2.setPosition(0.05);
+        slot3.setPosition(0.12);
 
 
 

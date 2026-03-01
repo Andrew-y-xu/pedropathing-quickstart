@@ -165,9 +165,9 @@ public class decode2 extends OpMode {
         testmotor.setDirection(DcMotorSimple.Direction.REVERSE);
         intakemotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        liftservo.setPosition(0.00); //0.05
-        lift2servo.setPosition(0.9); //0.9
-        lift3servo.setPosition(0.1);
+        liftservo.setPosition(0.05); //0.05
+        lift2servo.setPosition(0.98); //0.9
+        lift3servo.setPosition(0.12);
         //       aimservo.setPosition(0.5);
 
 
@@ -328,18 +328,18 @@ public class decode2 extends OpMode {
 
 
             if (cycleMode == 1) {
-                if (t < 300) liftservo.setPosition(0.60); //0.55
-                else if (t < 500) liftservo.setPosition(0.00); //0.05
+                if (t < 300) liftservo.setPosition(0.58); //0.55
+                else if (t < 500) liftservo.setPosition(0.05); //0.05
                 else { cycleRunning = false; cycleMode = 0; }
             }
             else if (cycleMode == 2) {
-                if (t < 300) lift2servo.setPosition(0.25); //0.30
-                else if (t < 500) lift2servo.setPosition(0.9);  //0.9
+                if (t < 300) lift2servo.setPosition(0.47); //0.30
+                else if (t < 500) lift2servo.setPosition(0.98);  //0.9
                 else { cycleRunning = false; cycleMode = 0; }
             }
             else if (cycleMode == 3) {
-                if (t < 300) lift3servo.setPosition(0.60);
-                else if (t < 500) lift3servo.setPosition(0.1);
+                if (t < 300) lift3servo.setPosition(0.63);
+                else if (t < 500) lift3servo.setPosition(0.12);
                 else { cycleRunning = false; cycleMode = 0; }
             }
         }
