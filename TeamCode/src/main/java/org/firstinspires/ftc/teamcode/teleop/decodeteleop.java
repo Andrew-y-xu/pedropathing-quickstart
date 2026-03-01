@@ -7,6 +7,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
+import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -41,6 +43,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.firstinspires.ftc.teamcode.hardware.AutoShooter;
+import org.firstinspires.ftc.teamcode.util.IndicatorLight;
+
 import java.util.List;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -114,6 +118,21 @@ public class decodeteleop extends OpMode {
     private double value = 0;
     public double speed = 1.0;
     private ElapsedTime debounceTimer = new ElapsedTime();
+    private static final String SENSOR3_NAME = "color3";
+    private static final String SENSOR2_NAME = "color2";
+
+    private static final String INDICATOR3_NAME = "indicator3";
+    private static final String INDICATOR2_NAME = "indicator2";
+
+    private NormalizedColorSensor colorSensor3;
+    private NormalizedColorSensor colorSensor2;
+
+    private IndicatorLight light3;
+    private IndicatorLight light2;
+
+    // Store last locked colors independently
+    private String lastLockedColor3 = "unknown";
+    private String lastLockedColor2 = "unknown";
 
     @Override
     public void init() {
@@ -164,7 +183,11 @@ public class decodeteleop extends OpMode {
 
         testmotor.setDirection(DcMotorSimple.Direction.REVERSE);
         intakemotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        colorSensor3 = hardwareMap.get(NormalizedColorSensor.class, SENSOR3_NAME);
+        colorSensor2 = hardwareMap.get(NormalizedColorSensor.class, SENSOR2_NAME);
 
+        light3 = new IndicatorLight(hardwareMap, INDICATOR3_NAME);
+        light2 = new IndicatorLight(hardwareMap, INDICATOR2_NAME);
         liftservo.setPosition(0.05); //0.05
         lift2servo.setPosition(0.98); //0.9
         lift3servo.setPosition(0.12);
@@ -329,17 +352,27 @@ public class decodeteleop extends OpMode {
 
             if (cycleMode == 1) {
                 if (t < 300) liftservo.setPosition(0.58); //0.55
-                else if (t < 500) liftservo.setPosition(0.05); //0.05
+                else if (t < 500) {
+                    liftservo.setPosition(0.05);//0.05
+                }
                 else { cycleRunning = false; cycleMode = 0; }
             }
             else if (cycleMode == 2) {
                 if (t < 300) lift2servo.setPosition(0.47); //0.30
-                else if (t < 500) lift2servo.setPosition(0.98);  //0.9
+                else if (t < 500) {
+                    lift2servo.setPosition(0.98);  //0.9
+                    light2.white();
+                    lastLockedColor2="white";
+                }
                 else { cycleRunning = false; cycleMode = 0; }
             }
             else if (cycleMode == 3) {
                 if (t < 300) lift3servo.setPosition(0.63);
-                else if (t < 500) lift3servo.setPosition(0.12);
+                else if (t < 500) {
+                    lift3servo.setPosition(0.12);
+                    light3.white();
+                    lastLockedColor3="white";
+                }
                 else { cycleRunning = false; cycleMode = 0; }
             }
         }
@@ -363,6 +396,7 @@ public class decodeteleop extends OpMode {
             intakemotor.setPower(-1.0);
             intake2servo.setPosition(0.0);
         }
+
 
 
 ///***************************/
@@ -551,9 +585,37 @@ public class decodeteleop extends OpMode {
             testmotor.setPower(shooterPowerValue);
             hoodservo.setPosition(servoPositionValue);
         }
+        String detected3 = detectColor(colorSensor3);
+        String detected2 = detectColor(colorSensor2);
+
+        // Locking code (Sensor 3)
+        if (detected3.equals("green") || detected3.equals("purple")) {
+            lastLockedColor3 = detected3;
+        }
+        // Locking code (Sensor 2)
+        if (detected2.equals("green") || detected2.equals("purple")) {
+            lastLockedColor2 = detected2;
+        }
 
 
+        // Display locked colors on LED
+        // Sensor 3 LED
+        if (lastLockedColor3.equals("green")) {
+            light3.green();
+        } else if (lastLockedColor3.equals("purple")) {
+            light3.violet();
+        }
 
+        // Sensor 2 LED
+        if (lastLockedColor2.equals("green")) {
+            light2.green();
+        } else if (lastLockedColor2.equals("purple")) {
+            light2.violet();
+        }
+        telemetry.addData("Sensor3 Detected", detected3);
+        telemetry.addData("Sensor3 Locked", lastLockedColor3);
+        telemetry.addData("Sensor2 Detected", detected2);
+        telemetry.addData("Sensor2 Locked", lastLockedColor2);
         telemetry.addData("----- Shooter Data -----", null);
         telemetry.addData("AutoShoot: ", autoShootMessage);
         telemetry.addData("AutoShoot Stopped: ", autoShoot.isShooterStopped());
@@ -572,6 +634,40 @@ public class decodeteleop extends OpMode {
         telemetry.addData( "Timer (s)", timer.seconds());
         telemetry.addData("Shooter Power (0-1)", value);
         telemetry.update();
+    }
+    private String detectColor(NormalizedColorSensor sensor) {
+        NormalizedRGBA rgba = sensor.getNormalizedColors();
+
+        double r = clamp01(rgba.red);
+        double g = clamp01(rgba.green);
+        double b = clamp01(rgba.blue);
+
+        double intensity = r + g + b;
+        boolean brightEnough = intensity > 0.06;
+        boolean notBlownOut = intensity < 2.7;
+
+        double sum = Math.max(1e-6, intensity);
+        double rn = r / sum;
+        double gn = g / sum;
+        double bn = b / sum;
+
+        boolean isGreen = brightEnough && notBlownOut &&
+                gn > 0.45 &&
+                gn > rn + 0.05 &&
+                gn > bn + 0.05;
+
+        boolean isPurple = brightEnough && notBlownOut &&
+                rn > 0.20 &&
+                bn > 0.40 &&
+                gn < 0.35 &&
+                Math.abs(rn - bn) < 0.30;
+
+        if (isGreen) return "green";
+        if (isPurple) return "purple";
+        return "unknown"; // does NOT reset lock
+    }
+    private double clamp01(float v) {
+        return Math.max(0.0, Math.min(1.0, v));
     }
     private boolean ifPressed(boolean button) {
         boolean output = false;
