@@ -1,12 +1,7 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
-import com.qualcomm.hardware.lynx.LynxModule;
-import com.qualcomm.robotcore.hardware.AnalogInput;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DigitalChannel;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -14,49 +9,25 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
-import com.qualcomm.hardware.limelightvision.LLStatus;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-
-import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
 import org.firstinspires.ftc.teamcode.hardware.AutoShooter;
 
 
-import com.qualcomm.hardware.limelightvision.LLResult;
-import com.qualcomm.hardware.limelightvision.LLResultTypes;
-import com.qualcomm.hardware.limelightvision.Limelight3A;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.firstinspires.ftc.teamcode.hardware.AutoShooter;
 import org.firstinspires.ftc.teamcode.util.IndicatorLight;
 
-import java.util.List;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-
-import java.util.ArrayList;
-
 @TeleOp(name="Blue Teleop")
-public class decodeteleop extends OpMode {
+public class BlueTeleop extends OpMode {
 
     DcMotor testmotor;
+    DcMotor flywheelmotor2;
     DcMotor intakemotor;
 
     DcMotorEx motor_frontLeft;
@@ -137,6 +108,8 @@ public class decodeteleop extends OpMode {
     @Override
     public void init() {
         testmotor = hardwareMap.dcMotor.get("testemotor");
+        flywheelmotor2 = hardwareMap.dcMotor.get("flywheelmotor2");
+
         motor_frontLeft = hardwareMap.get(DcMotorEx.class, "lf");
         motor_frontRight = hardwareMap.get(DcMotorEx.class, "rf");
         motor_backLeft = hardwareMap.get(DcMotorEx.class, "lr");
@@ -182,6 +155,8 @@ public class decodeteleop extends OpMode {
 //        convey = hardwareMap.get(Servo.class, "convey");
 
         testmotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        flywheelmotor2.setDirection(DcMotorSimple.Direction.FORWARD);
+
         intakemotor.setDirection(DcMotorSimple.Direction.REVERSE);
         colorSensor3 = hardwareMap.get(NormalizedColorSensor.class, SENSOR3_NAME);
         colorSensor2 = hardwareMap.get(NormalizedColorSensor.class, SENSOR2_NAME);
@@ -562,9 +537,11 @@ public class decodeteleop extends OpMode {
 
             if (gamepad2.left_bumper) {
                 testmotor.setPower(0.62);
+                flywheelmotor2.setPower(0.62);
             }
             if (gamepad2.right_bumper) {
                 testmotor.setPower(0.3);
+                flywheelmotor2.setPower(0.3);
             }
 
             double turretPower = 0.0; // DEFAULT = stop
@@ -583,6 +560,7 @@ public class decodeteleop extends OpMode {
             shooterPowerValue = autoShoot.getFlywheelPower();
             servoPositionValue = autoShoot.getAnglePosition();
             testmotor.setPower(shooterPowerValue);
+            flywheelmotor2.setPower(shooterPowerValue);
             hoodservo.setPosition(servoPositionValue);
         }
         String detected3 = detectColor(colorSensor3);
