@@ -53,7 +53,7 @@ public class RedTeleop extends OpMode {
     private boolean rtWasPressed = false;
     private boolean ltWasPressed = false;
 
-    double pPID = 0.13; //0.11 --> 0.04 (original value)
+    double pPID = 0.011; //0.11 --> 0.04 (original value)
     double dPID = 0.003; //0.003 --> 0.001 (original value)
     double iPID = 0;
     double lastTx = 0;

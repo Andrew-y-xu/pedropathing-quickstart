@@ -60,7 +60,7 @@ public class BlueTeleop extends OpMode {
 
 
 
-    double pPID = 0.13; //0.11 --> 0.04 (original value)
+    double pPID = 0.011; //0.11 --> 0.04 (original value)
     double dPID = 0.003; //0.003 --> 0.001 (original value)
     double iPID = 0;
     double lastTx = 0;
@@ -97,7 +97,10 @@ public class BlueTeleop extends OpMode {
 
     private NormalizedColorSensor colorSensor3;
     private NormalizedColorSensor colorSensor2;
-
+    private double colorPauseEnd2 = 0;
+    private double colorPauseEnd3 = 0;
+    private boolean pauseColor2 = false;
+    private boolean pauseColor3 = false;
     private IndicatorLight light3;
     private IndicatorLight light2;
 
@@ -335,9 +338,11 @@ public class BlueTeleop extends OpMode {
             else if (cycleMode == 2) {
                 if (t < 300) lift2servo.setPosition(0.47); //0.30
                 else if (t < 500) {
-                    lift2servo.setPosition(0.98);  //0.9
+                    lift2servo.setPosition(0.98);
+                    lastLockedColor2 = "unknown";
                     light2.white();
-                    lastLockedColor2="white";
+                    pauseColor2 = true;
+                    colorPauseEnd2 = timer.milliseconds() + 2500;
                 }
                 else { cycleRunning = false; cycleMode = 0; }
             }
@@ -345,8 +350,10 @@ public class BlueTeleop extends OpMode {
                 if (t < 300) lift3servo.setPosition(0.63);
                 else if (t < 500) {
                     lift3servo.setPosition(0.12);
+                    lastLockedColor3 = "unknown";
                     light3.white();
-                    lastLockedColor3="white";
+                    pauseColor3 = true;
+                    colorPauseEnd3 = timer.milliseconds() + 2500;
                 }
                 else { cycleRunning = false; cycleMode = 0; }
             }
@@ -563,31 +570,50 @@ public class BlueTeleop extends OpMode {
             flywheelmotor2.setPower(shooterPowerValue);
             hoodservo.setPosition(servoPositionValue);
         }
-        String detected3 = detectColor(colorSensor3);
-        String detected2 = detectColor(colorSensor2);
+        String detected3 = "unknown";
+        String detected2 = "unknown";
 
-        // Locking code (Sensor 3)
-        if (detected3.equals("green") || detected3.equals("purple")) {
-            lastLockedColor3 = detected3;
-        }
-        // Locking code (Sensor 2)
-        if (detected2.equals("green") || detected2.equals("purple")) {
-            lastLockedColor2 = detected2;
+        if (!pauseColor3 || timer.milliseconds() > colorPauseEnd3) {
+            pauseColor3 = false;
+            detected3 = detectColor(colorSensor3);
         }
 
+        if (!pauseColor2 || timer.milliseconds() > colorPauseEnd2) {
+            pauseColor2 = false;
+            detected2 = detectColor(colorSensor2);
+        }
 
-        // Display locked colors on LED
-        // Sensor 3 LED
-        if (lastLockedColor3.equals("green")) {
+        /* ADD THIS PART BACK */
+
+// Sensor 3 locking
+        if (!pauseColor3) {
+            if (detected3.equals("green") || detected3.equals("purple")) {
+                lastLockedColor3 = detected3;
+            }
+        }
+
+// Sensor 2 locking
+        if (!pauseColor2) {
+            if (detected2.equals("green") || detected2.equals("purple")) {
+                lastLockedColor2 = detected2;
+            }
+        }
+        if (pauseColor3) {
+            light3.white();
+        }
+        else if (lastLockedColor3.equals("green")) {
             light3.green();
-        } else if (lastLockedColor3.equals("purple")) {
+        }
+        else if (lastLockedColor3.equals("purple")) {
             light3.violet();
         }
-
-        // Sensor 2 LED
-        if (lastLockedColor2.equals("green")) {
+        if (pauseColor2) {
+            light2.white();
+        }
+        else if (lastLockedColor2.equals("green")) {
             light2.green();
-        } else if (lastLockedColor2.equals("purple")) {
+        }
+        else if (lastLockedColor2.equals("purple")) {
             light2.violet();
         }
         telemetry.addData("Sensor3 Detected", detected3);
