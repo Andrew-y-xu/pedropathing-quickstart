@@ -425,7 +425,7 @@ public class RedTeleop extends OpMode {
                 limelight_tx = fr.getTargetXDegrees();
                 limelightTy = fr.getTargetYDegrees();
                 //--- If Red Target
-                if (fr.getFiducialId() ==24) {
+                if (fr.getFiducialId() == 24) {
                     derivativeTx = 1000000000.0 * (limelight_tx - lastTx) / (System.nanoTime() - lastTimeUpdated);
                     poopeemotorey.setPower(pPID * limelight_tx + dPID * derivativeTx); //TxValue
                     doesiseeitfoundboi = true;
