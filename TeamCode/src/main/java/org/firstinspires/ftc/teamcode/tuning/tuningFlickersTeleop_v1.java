@@ -8,9 +8,9 @@
         o.2. *Do I see gangster rapper*       - [b]                             - stop FlyWheel
 
     2. GamPad-2
-        2.1. *Dpadformotor*   - [ dpad_left  ]                   - liftservo
-        2.2. *Dpadformotor*   - [ dpad_right ]                   - lift2servo
-        2.3. *Dpadformotor*   - [ dpad_down  ]                   - lift3servo
+        2.1. *Dpadformotor*   - [ dpad_left  ]                   - flickerLeftServo
+        2.2. *Dpadformotor*   - [ dpad_right ]                   - flickerRightServo
+        2.3. *Dpadformotor*   - [ dpad_down  ]                   - flickerBackServo
         2.4. *Intake*         - [ b, y, x    ]                   - Set Power
         2.5. *Dingus Shooter* - [ right_trigger ]                - 0.5 increment power
         2.6. *Dingus Shooter* - [ left_trigger ]                 - 0.5 decrement power
@@ -20,15 +20,14 @@
    3. Auto
         3.1. *Do I see gangster rapper* - LLResult resultsofpooe - LimeLight Result
         3.2. *Do I see gangster rapper* - poopeemotorey - Turn Table motor
-        3.2. *Do I see gangster rapper* - testmotor     - FlyWheel motor
-        3.3. *Do I see gangster rapper* - hoodservo     - Hood Servo
+        3.2. *Do I see gangster rapper* - shooterFlywheelMotor     - FlyWheel motor
+        3.3. *Do I see gangster rapper* - shooterHoodServo     - Hood Servo
  */
 package org.firstinspires.ftc.teamcode.tuning;
 
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -42,26 +41,28 @@ import org.firstinspires.ftc.teamcode.common.AutoShooter;
 import java.util.ArrayList;
 import java.util.List;
 
-@TeleOp(name="Tuning AutoShootTeleop_v3")
-@Disabled
-public class tuningAutoShootTeleop_v3 extends OpMode {
+@TeleOp(name="Tuning FlickersTeleop_v1")
+public class tuningFlickersTeleop_v1 extends OpMode {
 
-    DcMotor testmotor;
-    DcMotor intakemotor;
-    Servo intakeservo;
+    //*** Shooter
+    DcMotor shooterFlywheelMotor;
+    Servo shooterHoodServo;
 
+    //*** Intake
+    DcMotor intakeFrontMotor;
+    Servo intakeBackServo;
+
+    //*** Drive Train
     DcMotorEx motor_frontLeft;
     DcMotorEx motor_frontRight;
     DcMotorEx motor_backLeft;
     DcMotorEx motor_backRight;
-    Servo liftservo;
-    Servo lift2servo;
-    Servo lift3servo;
-    Servo hoodservo; //--- Added for AutoShoot
 
-    //    Servo aimservo;
-//
-//    Servo convey;
+    //*** Flickers
+    Servo flickerLeftServo;
+    Servo flickerRightServo;
+    Servo flickerBackServo;
+
     boolean xAlrPressed = false;
     boolean yAlrPressed = false;
 
@@ -118,21 +119,32 @@ public class tuningAutoShootTeleop_v3 extends OpMode {
     public double speed = 1.0;
     private ElapsedTime debounceTimer = new ElapsedTime();
 
+
+    /*** Tuning Constant
+     1. Flickers Servo Constant
+    */
+    private double flickerRightServoUpPosition = 0.47;
+    private double flickerRightServoDownPosition = 0.98;
+    private double flickerLeftServoUpPosition = 0.58;
+    private double  flickerLeftServoDownPosition = 0.05;
+    private double  flickerBackServoUpPosition = 0.63;
+    private double  flickerBackServoDownPosition = 0.12;
+
     @Override
     public void init() {
-        testmotor = hardwareMap.dcMotor.get("testemotor");
+        shooterFlywheelMotor = hardwareMap.dcMotor.get("testemotor");
         motor_frontLeft = hardwareMap.get(DcMotorEx.class, "lf");
         motor_frontRight = hardwareMap.get(DcMotorEx.class, "rf");
         motor_backLeft = hardwareMap.get(DcMotorEx.class, "lr");
         motor_backRight = hardwareMap.get(DcMotorEx.class, "rr");
 
-        intakemotor = hardwareMap.dcMotor.get("intakemotor");
-        intakeservo = hardwareMap.get(Servo.class, "intake2servo");
+        intakeFrontMotor = hardwareMap.dcMotor.get("intakemotor");
+        intakeBackServo = hardwareMap.get(Servo.class, "intake2servo");
 
         poopeemotorey = hardwareMap.get(DcMotor.class, "turretmotor");
         //***** ShooterActuator Servo
-        hoodservo = hardwareMap.get(Servo.class, "hood");
-        hoodservo.setPosition(servo_value);
+        shooterHoodServo = hardwareMap.get(Servo.class, "hood");
+        shooterHoodServo.setPosition(servo_value);
 
         //lookylookyseesee = hardwareMap.get(Limelight3A.class, "lookylookyseesee");
         lookylookyseesee = hardwareMap.get(Limelight3A.class, "limelight");
@@ -162,18 +174,18 @@ public class tuningAutoShootTeleop_v3 extends OpMode {
         motor_backRight.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 
 
-        liftservo = hardwareMap.get(Servo.class, "lift2");
-        lift2servo = hardwareMap.get(Servo.class, "lift1");
-        lift3servo = hardwareMap.get(Servo.class, "lift3");
+        flickerLeftServo = hardwareMap.get(Servo.class, "lift2");
+        flickerRightServo = hardwareMap.get(Servo.class, "lift1");
+        flickerBackServo = hardwareMap.get(Servo.class, "lift3");
         //       aimservo = hardwareMap.get(Servo.class, "aimservo");
 //        convey = hardwareMap.get(Servo.class, "convey");
 
-        testmotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        intakemotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        shooterFlywheelMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        intakeFrontMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        liftservo.setPosition(0.05); //0.05
-        lift2servo.setPosition(0.745); //0.745
-        lift3servo.setPosition(0.1);
+        flickerLeftServo.setPosition(flickerLeftServoDownPosition); //0.05
+        flickerRightServo.setPosition(flickerRightServoDownPosition); //0.745
+        flickerBackServo.setPosition(flickerBackServoDownPosition);
         //       aimservo.setPosition(0.5);
 
 
@@ -260,54 +272,6 @@ public class tuningAutoShootTeleop_v3 extends OpMode {
         telemetry.addData("backLeft", leftBackPower);
         telemetry.addData("backRight", rightBackPower);
 
-
-
-        /***************************/
-        /****Jerk ***/
-        /***************************/
-//        // Start jerk sequence on button press
-//        if (gamepad1.x && !jerkRunning) {
-//            jerkRunning = true;
-//            jerkStartTime = jerkTimer.milliseconds();
-//        }
-
-// Run the jerk sequence
-//        if (jerkRunning) {
-//            double t = jerkTimer.milliseconds() - jerkStartTime;
-//
-//            if (t < 210) {
-//                // Drive forward fast for 200 ms
-//                frontLeft(1.0);
-//                frontRight(1.0);
-//                backLeft(1.0);
-//                backRight(1.0);
-//            }
-//            else if (t < 400) {
-//                // Then drive backwards fast for 200 ms
-//                frontLeft(-1.0);
-//                frontRight(-1.0);
-//                backLeft(-1.0);
-//                backRight(-1.0);
-//            }
-//            else if (t < 420) {
-//                frontLeft(0.9);
-//                backLeft(0.9);
-//                frontRight(-0.9);
-//                backRight(-0.9);
-//            }
-//            else {
-//                // End sequence
-//                jerkRunning = false;
-//
-//                // STOP the robot
-//                frontLeft(0);
-//                frontRight(0);
-//                backLeft(0);
-//                backRight(0);
-//            }
-//        }
-
-
         /***************************/
         /**** Dpadformotor? ***/
         /***************************/
@@ -333,18 +297,18 @@ public class tuningAutoShootTeleop_v3 extends OpMode {
             double t = timer.milliseconds() - cycleStartTime;
 
             if (cycleMode == 1) {
-                if (t < 300) liftservo.setPosition(0.55); //0.55
-                else if (t < 500) liftservo.setPosition(0.05); //0.05
+                if (t < 300) flickerLeftServo.setPosition(flickerLeftServoUpPosition); //0.55
+                else if (t < 500) flickerLeftServo.setPosition(flickerLeftServoDownPosition); //0.05
                 else { cycleRunning = false; cycleMode = 0; }
             }
             else if (cycleMode == 2) {
-                if (t < 300) lift2servo.setPosition(0.30); //0.30
-                else if (t < 500) lift2servo.setPosition(0.745);  //0.745
+                if (t < 300) flickerRightServo.setPosition(flickerRightServoUpPosition); //0.30
+                else if (t < 500) flickerRightServo.setPosition(flickerRightServoDownPosition);  //0.745
                 else { cycleRunning = false; cycleMode = 0; }
             }
             else if (cycleMode == 3) {
-                if (t < 300) lift3servo.setPosition(0.55);
-                else if (t < 500) lift3servo.setPosition(0.1);
+                if (t < 300) flickerBackServo.setPosition(flickerBackServoUpPosition);
+                else if (t < 500) flickerBackServo.setPosition(flickerBackServoDownPosition);
                 else { cycleRunning = false; cycleMode = 0; }
             }
         }
@@ -357,39 +321,17 @@ public class tuningAutoShootTeleop_v3 extends OpMode {
 
 
         if (gamepad2.b) {
-            intakemotor.setPower(0);
-            intakeservo.setPosition(0);
+            intakeFrontMotor.setPower(0);
+            intakeBackServo.setPosition(0);
         }
         if (gamepad2.y) {
-            intakemotor.setPower(1.0);
-            intakeservo.setPosition(1);
+            intakeFrontMotor.setPower(1.0);
+            intakeBackServo.setPosition(1);
         }
         if (gamepad2.x) {
-            intakemotor.setPower(-1.0);
-            intakeservo.setPosition(-1);
+            intakeFrontMotor.setPower(-1.0);
+            intakeBackServo.setPosition(-1);
         }
-
-///***************************/
-///**** Clamp Servo – gamepad2 RIGHT stick smooth control ***/
-///***************************/
-//
-//// FTC Y stick is inverted
-//        double rightStickInput = -gamepad2.right_stick_y;
-//
-//// Deadzone check
-//        if (Math.abs(rightStickInput) > deadzone) {
-//            double servoRampRate = 0.005; // smaller than motor for precision
-//            clampValue += rightStickInput * servoRampRate;
-//        }
-//
-//// Clamp servo range to [0.25, 0.5]
-//        clampValue = Math.max(0.25, Math.min(clampValue, 0.5));
-//
-//// Apply to servo
-//        aimservo.setPosition(clampValue);
-
-
-        // Clamp value to [0.0, 1.0]
 
 /***************************/
 /**** Dingus Shooter (incremental + presets override) ***/
@@ -424,7 +366,7 @@ public class tuningAutoShootTeleop_v3 extends OpMode {
 
 // Clamp AFTER everything, then apply
         value = Math.max(0.0, Math.min(value, 1.0));
-        testmotor.setPower(value);
+        shooterFlywheelMotor.setPower(value);
 */
 
 // Telemetry
@@ -487,7 +429,8 @@ public class tuningAutoShootTeleop_v3 extends OpMode {
             shooter_value = 0.0;
             servo_value = 0.5;
         }
-        testmotor.setPower(shooter_value);
+        //shooterFlywheelMotor.setPower(shooter_value);
+        shooterFlywheelMotor.setVolecity(shooter_value);
 
         //***** SERVO CONTROL (A / B)
         if (servoDebounce.milliseconds() > 150) {
@@ -535,11 +478,11 @@ public class tuningAutoShootTeleop_v3 extends OpMode {
                     double ty = fr.getTargetYDegrees();
                     //--- Shooter FlyWheel
                     shooterPowerValue = autoShoot.getFlywheelPower;
-                    testmotor.setPower(shooterPowerValue);
+                    shooterFlywheelMotor.setPower(shooterPowerValue);
 
                     //--- Shooter Angle
                     servoPositionValue = autoShoot.getAnglePosition;
-                    hoodservo.setPosition(servoPositionValue);
+                    shooterHoodServo.setPosition(servoPositionValue);
                 }
                 */
 
@@ -547,10 +490,10 @@ public class tuningAutoShootTeleop_v3 extends OpMode {
                     //autoShoot.advancedMathematics(limelightTy);
                     //--- Shooter FlyWheel
                     //shooterPowerValue = autoShoot.getFlywheelPower();  //--- Update Shooter FlyWheel math here, or use new shooter class for object
-                    //testmotor.setPower(shooterPowerValue);
+                    //shooterFlywheelMotor.setPower(shooterPowerValue);
                     //--- Shooter Angle
                     //servoPositionValue = autoShoot.getAnglePosition();  //--- Update Shooter Angle math here, or use new shooter class for object
-                    //hoodservo.setPosition(servoPositionValue);
+                    //shooterHoodServo.setPosition(servoPositionValue);
                     break;
                 }
 
@@ -559,10 +502,10 @@ public class tuningAutoShootTeleop_v3 extends OpMode {
         }// End Vision condition
 
         shooterPowerValue = autoShoot.getFlywheelPower();  //--- Update Shooter FlyWheel math here, or use new shooter class for object
-        testmotor.setPower(shooterPowerValue);
+        //shooterFlywheelMotor.setPower(shooterPowerValue);
         //--- Shooter Angle
         servoPositionValue = autoShoot.getAnglePosition();  //--- Update Shooter Angle math here, or use new shooter class for object
-        hoodservo.setPosition(servoPositionValue);
+        shooterHoodServo.setPosition(servoPositionValue);
 
         if (!doesiseeitfoundboi) {
             poopeemotorey.setPower(0);
@@ -612,7 +555,7 @@ public class tuningAutoShootTeleop_v3 extends OpMode {
             shooterPowerValue = 0.0;
             servo_value = 0.5;
         }
-        testmotor.setPower(shooterPowerValue);
+        shooterFlywheelMotor.setPower(shooterPowerValue);
 
         //***** SERVO CONTROL (A / B)
         if (servoDebounce.milliseconds() > 150) {
@@ -627,7 +570,7 @@ public class tuningAutoShootTeleop_v3 extends OpMode {
 
         //***** Telemetry feedback
         servoPositionValue = Math.max(0.0, Math.min(servo_value, 1.0));
-        hoodservo.setPosition(servoPositionValue);
+        shooterHoodServo.setPosition(servoPositionValue);
 
 
 

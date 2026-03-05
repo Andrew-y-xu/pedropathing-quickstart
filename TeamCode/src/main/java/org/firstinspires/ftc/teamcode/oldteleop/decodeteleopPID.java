@@ -1,54 +1,31 @@
-/*  *** TeleOp Robot Control Summary ***
-    1. GamePad-1
-        1.1. *Drive Train Related* code block - [ left_stick_y, left_stick_x ]  - direction
-        1.2. *Drive Train Related* code block - [ y, a, b ]                     - speed
-        1.3. *Drive Train Related* code block - [ left_trigger, right trigger ] - *Drive Train Related* code block speed
-        1.4. *Jerk* code block                - [x]                             - shake
-        o.1. *Do I see gangster rapper*       - [a]                             - start FlyWheel
-        o.2. *Do I see gangster rapper*       - [b]                             - stop FlyWheel
+package org.firstinspires.ftc.teamcode.oldteleop;
 
-    2. GamPad-2
-        2.1. *Dpadformotor*   - [ dpad_left  ]                   - liftservo
-        2.2. *Dpadformotor*   - [ dpad_right ]                   - lift2servo
-        2.3. *Dpadformotor*   - [ dpad_down  ]                   - lift3servo
-        2.4. *Intake*         - [ b, y, x    ]                   - Set Power
-        2.5. *Dingus Shooter* - [ right_trigger ]                - 0.5 increment power
-        2.6. *Dingus Shooter* - [ left_trigger ]                 - 0.5 decrement power
-        2.7. *Dingus Shooter* - [ right_bumper ]                 - 0.70 preset power
-        2.8. *Dingus Shooter* - [ left_bumper ]                  - 0.00 preset power
-        2.9. *Do I see gangster rapper* - [a]                    - start & stop FlyWheel
-   3. Auto
-        3.1. *Do I see gangster rapper* - LLResult resultsofpooe - LimeLight Result
-        3.2. *Do I see gangster rapper* - poopeemotorey - Turn Table motor
-        3.2. *Do I see gangster rapper* - testmotor     - FlyWheel motor
-        3.3. *Do I see gangster rapper* - hoodservo     - Hood Servo
- */
-package org.firstinspires.ftc.teamcode.tuning;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.Servo;
 
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.common.AutoShooter;
+
+
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@TeleOp(name="Tuning AutoShootTeleop_v3")
 @Disabled
-public class tuningAutoShootTeleop_v3 extends OpMode {
+@TeleOp(name="Decode Teleop M1")
+public class decodeteleopPID extends OpMode {
 
     DcMotor testmotor;
     DcMotor intakemotor;
-    Servo intakeservo;
 
     DcMotorEx motor_frontLeft;
     DcMotorEx motor_frontRight;
@@ -57,16 +34,12 @@ public class tuningAutoShootTeleop_v3 extends OpMode {
     Servo liftservo;
     Servo lift2servo;
     Servo lift3servo;
+    Servo intake2servo;
     Servo hoodservo; //--- Added for AutoShoot
 
-    //    Servo aimservo;
+//    Servo aimservo;
 //
 //    Servo convey;
-    boolean xAlrPressed = false;
-    boolean yAlrPressed = false;
-
-    double tuningShooterIncrementConstant = 0.05;
-    double tuningServoIncrementConstant   = 0.05;
 
     ArrayList<Boolean> booleanArray = new ArrayList<Boolean>();
     int booleanIncrementer = 0;
@@ -79,8 +52,9 @@ public class tuningAutoShootTeleop_v3 extends OpMode {
     private Limelight3A lookylookyseesee;
     ElapsedTime timer = new ElapsedTime();
 
-    private boolean  rtWasPressed = false;
+    private boolean rtWasPressed = false;
     private boolean ltWasPressed = false;
+
 
     double pPID = 0.04;
     double dPID = 0.001;
@@ -100,13 +74,8 @@ public class tuningAutoShootTeleop_v3 extends OpMode {
     double servo_value = 0.5;
     String limelightMessage = "No data available";
     String autoShootMessage = "At Init";
+    String motifPattern = "xxx";
 
-    ElapsedTime motorDebounce = new ElapsedTime();
-    ElapsedTime servoDebounce = new ElapsedTime();
-
-    double shooter_value=0.0;
-
-    //--- End AutoShoot
 
     double deadzone = 0.05;
     private boolean jerkRunning = false;
@@ -127,14 +96,10 @@ public class tuningAutoShootTeleop_v3 extends OpMode {
         motor_backRight = hardwareMap.get(DcMotorEx.class, "rr");
 
         intakemotor = hardwareMap.dcMotor.get("intakemotor");
-        intakeservo = hardwareMap.get(Servo.class, "intake2servo");
-
-        poopeemotorey = hardwareMap.get(DcMotor.class, "turretmotor");
-        //***** ShooterActuator Servo
         hoodservo = hardwareMap.get(Servo.class, "hood");
         hoodservo.setPosition(servo_value);
 
-        //lookylookyseesee = hardwareMap.get(Limelight3A.class, "lookylookyseesee");
+        poopeemotorey = hardwareMap.get(DcMotor.class, "turretmotor");
         lookylookyseesee = hardwareMap.get(Limelight3A.class, "limelight");
 
         telemetry.setMsTransmissionInterval(11);
@@ -165,13 +130,14 @@ public class tuningAutoShootTeleop_v3 extends OpMode {
         liftservo = hardwareMap.get(Servo.class, "lift2");
         lift2servo = hardwareMap.get(Servo.class, "lift1");
         lift3servo = hardwareMap.get(Servo.class, "lift3");
+        intake2servo = hardwareMap.get(Servo.class, "intake2servo");
         //       aimservo = hardwareMap.get(Servo.class, "aimservo");
 //        convey = hardwareMap.get(Servo.class, "convey");
 
         testmotor.setDirection(DcMotorSimple.Direction.REVERSE);
         intakemotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        liftservo.setPosition(0.05); //0.05
+        liftservo.setPosition(0.00); //0.05
         lift2servo.setPosition(0.745); //0.745
         lift3servo.setPosition(0.1);
         //       aimservo.setPosition(0.5);
@@ -180,7 +146,6 @@ public class tuningAutoShootTeleop_v3 extends OpMode {
         telemetry.addData("Status", "Initialized");
         telemetry.update();
     }
-
     public void frontLeft(double power){
         if (power > 1){
             power = 1;
@@ -210,8 +175,8 @@ public class tuningAutoShootTeleop_v3 extends OpMode {
     public void loop() {
         booleanIncrementer = 0;
         boolean gamePad1yIsPressed = ifPressed(gamepad1.y);
-        //boolean gamePad1aIsPressed = ifPressed(gamepad1.a);
-        //boolean gamePad1bIsPressed = ifPressed(gamepad1.b);
+        boolean gamePad1aIsPressed = ifPressed(gamepad1.a);
+        boolean gamePad1bIsPressed = ifPressed(gamepad1.b);
 
         /***************************/
         /****Drive Train Related ***/
@@ -223,14 +188,13 @@ public class tuningAutoShootTeleop_v3 extends OpMode {
         if (gamePad1yIsPressed){
             speed = 0.7;
         }
-        /*
         if (gamePad1bIsPressed){
             speed = 0.3;
         }
         if (gamePad1aIsPressed){
             speed = 1.5;
         }
-        */
+
         double leftFrontPower  = vx + vy + o;
         double rightFrontPower = vx - vy - o;
         double leftBackPower   = vx - vy + o;
@@ -265,47 +229,47 @@ public class tuningAutoShootTeleop_v3 extends OpMode {
         /***************************/
         /****Jerk ***/
         /***************************/
-//        // Start jerk sequence on button press
-//        if (gamepad1.x && !jerkRunning) {
-//            jerkRunning = true;
-//            jerkStartTime = jerkTimer.milliseconds();
-//        }
+        // Start jerk sequence on button press
+        if (gamepad1.x && !jerkRunning) {
+            jerkRunning = true;
+            jerkStartTime = jerkTimer.milliseconds();
+        }
 
 // Run the jerk sequence
-//        if (jerkRunning) {
-//            double t = jerkTimer.milliseconds() - jerkStartTime;
-//
-//            if (t < 210) {
-//                // Drive forward fast for 200 ms
-//                frontLeft(1.0);
-//                frontRight(1.0);
-//                backLeft(1.0);
-//                backRight(1.0);
-//            }
-//            else if (t < 400) {
-//                // Then drive backwards fast for 200 ms
-//                frontLeft(-1.0);
-//                frontRight(-1.0);
-//                backLeft(-1.0);
-//                backRight(-1.0);
-//            }
-//            else if (t < 420) {
-//                frontLeft(0.9);
-//                backLeft(0.9);
-//                frontRight(-0.9);
-//                backRight(-0.9);
-//            }
-//            else {
-//                // End sequence
-//                jerkRunning = false;
-//
-//                // STOP the robot
-//                frontLeft(0);
-//                frontRight(0);
-//                backLeft(0);
-//                backRight(0);
-//            }
-//        }
+        if (jerkRunning) {
+            double t = jerkTimer.milliseconds() - jerkStartTime;
+
+            if (t < 210) {
+                // Drive forward fast for 200 ms
+                frontLeft(1.0);
+                frontRight(1.0);
+                backLeft(1.0);
+                backRight(1.0);
+            }
+            else if (t < 400) {
+                // Then drive backwards fast for 200 ms
+                frontLeft(-1.0);
+                frontRight(-1.0);
+                backLeft(-1.0);
+                backRight(-1.0);
+            }
+            else if (t < 420) {
+                frontLeft(0.9);
+                backLeft(0.9);
+                frontRight(-0.9);
+                backRight(-0.9);
+            }
+            else {
+                // End sequence
+                jerkRunning = false;
+
+                // STOP the robot
+                frontLeft(0);
+                frontRight(0);
+                backLeft(0);
+                backRight(0);
+            }
+        }
 
 
         /***************************/
@@ -322,51 +286,50 @@ public class tuningAutoShootTeleop_v3 extends OpMode {
 //            }
 //        }
 
-        //if (gamepad2.dpad_left  && !cycleRunning) { cycleRunning = true; cycleMode = 1; cycleStartTime = timer.milliseconds(); }
-        //if (gamepad2.dpad_right && !cycleRunning) { cycleRunning = true; cycleMode = 2; cycleStartTime = timer.milliseconds(); }
-        //if (gamepad2.dpad_down && !cycleRunning) { cycleRunning = true; cycleMode = 3; cycleStartTime = timer.milliseconds(); }
-        if (gamepad1.dpad_left  && !cycleRunning) { cycleRunning = true; cycleMode = 1; cycleStartTime = timer.milliseconds(); }
-        if (gamepad1.dpad_right && !cycleRunning) { cycleRunning = true; cycleMode = 2; cycleStartTime = timer.milliseconds(); }
-        if (gamepad1.dpad_down && !cycleRunning) { cycleRunning = true; cycleMode = 3; cycleStartTime = timer.milliseconds(); }
+        if (gamepad2.dpad_left  && !cycleRunning) { cycleRunning = true; cycleMode = 1; cycleStartTime = timer.milliseconds(); }
+        if (gamepad2.dpad_right && !cycleRunning) { cycleRunning = true; cycleMode = 2; cycleStartTime = timer.milliseconds(); }
+        if (gamepad2.dpad_down && !cycleRunning) { cycleRunning = true; cycleMode = 3; cycleStartTime = timer.milliseconds(); }
 
         if (cycleRunning) {
             double t = timer.milliseconds() - cycleStartTime;
 
+
+            //slot1 = lift2servo, slot2 = liftservo, slot3 = lift3servo
+
+
+
             if (cycleMode == 1) {
-                if (t < 300) liftservo.setPosition(0.55); //0.55
-                else if (t < 500) liftservo.setPosition(0.05); //0.05
+                if (t < 300) liftservo.setPosition(0.60); //0.55
+                else if (t < 500) liftservo.setPosition(0.00); //0.05
                 else { cycleRunning = false; cycleMode = 0; }
             }
             else if (cycleMode == 2) {
-                if (t < 300) lift2servo.setPosition(0.30); //0.30
+                if (t < 300) lift2servo.setPosition(0.25); //0.30
                 else if (t < 500) lift2servo.setPosition(0.745);  //0.745
                 else { cycleRunning = false; cycleMode = 0; }
             }
             else if (cycleMode == 3) {
-                if (t < 300) lift3servo.setPosition(0.55);
+                if (t < 300) lift3servo.setPosition(0.60);
                 else if (t < 500) lift3servo.setPosition(0.1);
                 else { cycleRunning = false; cycleMode = 0; }
             }
         }
 
-        //Down, Left, Right
-
         /***************************/
         /**** Intake ***/
         /***************************/
 
-
         if (gamepad2.b) {
             intakemotor.setPower(0);
-            intakeservo.setPosition(0);
+            intake2servo.setPosition(0.5);
         }
         if (gamepad2.y) {
             intakemotor.setPower(1.0);
-            intakeservo.setPosition(1);
+            intake2servo.setPosition(1.0);
         }
         if (gamepad2.x) {
             intakemotor.setPower(-1.0);
-            intakeservo.setPosition(-1);
+            intake2servo.setPosition(0.0);
         }
 
 ///***************************/
@@ -394,113 +357,56 @@ public class tuningAutoShootTeleop_v3 extends OpMode {
 /***************************/
 /**** Dingus Shooter (incremental + presets override) ***/
 /***************************/
-
-/*
-// --- Incremental step controls (tap) ---
-        double step = 0.05;
-
-// Treat triggers like buttons (press past threshold)
-        boolean rtPressed = gamepad2.right_trigger > 0.5;
-        boolean ltPressed = gamepad2.left_trigger  > 0.5;
-
-// Rising edge: step only once per press
-        if (rtPressed && !rtWasPressed) {
-            value += step;
-        }
-        if (ltPressed && !ltWasPressed) {
-            value -= step;
-        }
-
-// Save states for next loop
-        rtWasPressed = rtPressed;
-        ltWasPressed = ltPressed;
-
-// --- Presets OVERRIDE incremental ---
-        if (gamepad2.left_bumper) {
-            value = 0.70;
-        } else if (gamepad2.right_bumper) {
-            value = 0.0;
-        }
+//
+//// --- Incremental step controls (tap) ---
+//        double step = 0.05;
+//
+//// Treat triggers like buttons (press past threshold)
+//        boolean rtPressed = gamepad2.right_trigger > 0.5;
+//        boolean ltPressed = gamepad2.left_trigger  > 0.5;
+//
+//// Rising edge: step only once per press
+//        if (rtPressed && !rtWasPressed) {
+//            value += step;
+//        }
+//        if (ltPressed && !ltWasPressed) {
+//            value -= step;
+//        }
+//
+//// Save states for next loop
+//        rtWasPressed = rtPressed;
+//        ltWasPressed = ltPressed;
+//
+//// --- Presets OVERRIDE incremental ---
+//        if (gamepad2.left_bumper) {
+//            value = 0.70;
+//        } else if (gamepad2.right_bumper) {
+//            value = 0.0;
+//        }
 
 // Clamp AFTER everything, then apply
         value = Math.max(0.0, Math.min(value, 1.0));
-        testmotor.setPower(value);
-*/
+
 
 // Telemetry
-///***************************/
-///**** Do I see gangster rapper? ***/
-///***************************/
-
-        ///***************************/
-        ///**** FlyWheel On/Off    ***/
-        ///***************************/
-
-        /*
-        boolean gamePad1aIsPressed = ifPressed(gamepad1.a);
-        boolean gamePad1bIsPressed = ifPressed(gamepad1.b);
-        //Options GamePad1
-        if (gamepad1.a && !gamePad1aIsPressed) {
-            autoShoot.startShooter();
-            autoShootMessage = "Pressed and started";
-        }
-        if (gamepad1.b && !gamePad1bIsPressed) {
-            autoShoot.stopShooter();
-            autoShootMessage = "Pressed and stopped";
-        }
+/***************************/
+/**** Do I see gangster rapper? ***/
+/***************************/
 
 
         //if (gamepad2.a && !aButtonWasPressed && !autoShoot.isShooterStopped()) {
-        if (gamepad2.a && !aButtonWasPressed) {
+        if (gamepad2.a && !aButtonWasPressed && autoShoot.isShooterStopped()) {
             autoShoot.startShooter();
             autoShootMessage = "Pressed and started";
         }
-        */
 
         //if (gamepad2.b && !aButtonWasPressed && autoShoot.isShooterStopped()) {
-        //if (gamepad2.right_bumper && !bButtonWasPressed) {
-        //    autoShoot.stopShooter();
-        //    autoShootMessage = "Pressed and stopped";
-        //}
-        //aButtonWasPressed = gamepad2.a;
-        //bButtonWasPressed = gamepad2.right_bumper;
-
-        //***** MOTOR CONTROL (X / Y)
-        if (motorDebounce.milliseconds() > 300) {
-            if (gamepad1.x && !xAlrPressed) {
-                shooter_value += tuningShooterIncrementConstant;
-                autoShoot.setFlywheelPower(shooter_value);
-                motorDebounce.reset();
-            }
-
-            if (gamepad1.y && !yAlrPressed) {
-                shooter_value -= tuningShooterIncrementConstant;
-                autoShoot.setFlywheelPower(shooter_value);
-                motorDebounce.reset();
-            }
+        if (gamepad2.right_bumper && !bButtonWasPressed && !autoShoot.isShooterStopped()) {
+            autoShoot.stopShooter();
+            autoShootMessage = "Pressed and stopped";
         }
-        xAlrPressed = gamepad1.x;
-        yAlrPressed = gamepad1.y;
-
-        //--- Stop the FlyWheel
-        if (gamepad1.right_bumper) {
-            shooter_value = 0.0;
-            servo_value = 0.5;
-        }
-        testmotor.setPower(shooter_value);
-
-        //***** SERVO CONTROL (A / B)
-        if (servoDebounce.milliseconds() > 150) {
-            if (gamepad1.a) {
-                servo_value += tuningServoIncrementConstant;
-                autoShoot.setAnglePosition(servo_value);
-                servoDebounce.reset();
-            } else if (gamepad1.b) {
-                servo_value -= tuningServoIncrementConstant;
-                autoShoot.setAnglePosition(servo_value);
-                servoDebounce.reset();
-            }
-        }
+        aButtonWasPressed = gamepad2.a;
+        bButtonWasPressed = gamepad2.right_bumper;
 
         ///*** End Flywheel On/Off ***/
 
@@ -543,27 +449,28 @@ public class tuningAutoShootTeleop_v3 extends OpMode {
                 }
                 */
 
-                    //--- Get LimeLight Ty
-                    //autoShoot.advancedMathematics(limelightTy);
-                    //--- Shooter FlyWheel
-                    //shooterPowerValue = autoShoot.getFlywheelPower();  //--- Update Shooter FlyWheel math here, or use new shooter class for object
-                    //testmotor.setPower(shooterPowerValue);
-                    //--- Shooter Angle
-                    //servoPositionValue = autoShoot.getAnglePosition();  //--- Update Shooter Angle math here, or use new shooter class for object
-                    //hoodservo.setPosition(servoPositionValue);
-                    break;
+//                    //--- Get LimeLight Ty
+//                    autoShoot.advancedMathematics(limelightTy);
+//                    //--- Shooter FlyWheel
+//                    shooterPowerValue = autoShoot.getFlywheelPower();  //--- Update Shooter FlyWheel math here, or use new shooter class for object
+//                    testmotor.setPower(shooterPowerValue);
+//                    //--- Shooter Angle
+//                    servoPositionValue = autoShoot.getAnglePosition();  //--- Update Shooter Angle math here, or use new shooter class for object
+//                    hoodservo.setPosition(servoPositionValue);
+//                    break;
+
+
+                } else if(fr.getFiducialId()==21){
+                    motifPattern = "GPP";
+                } else if(fr.getFiducialId()==22){
+                    motifPattern = "PGP";
+                } else if (fr.getFiducialId()==23){
+                    motifPattern = "PPG";
                 }
 
             }
 
-        }// End Vision condition
-
-        shooterPowerValue = autoShoot.getFlywheelPower();  //--- Update Shooter FlyWheel math here, or use new shooter class for object
-        testmotor.setPower(shooterPowerValue);
-        //--- Shooter Angle
-        servoPositionValue = autoShoot.getAnglePosition();  //--- Update Shooter Angle math here, or use new shooter class for object
-        hoodservo.setPosition(servoPositionValue);
-
+        }
         if (!doesiseeitfoundboi) {
             poopeemotorey.setPower(0);
             limelightMessage = "No data available";
@@ -591,65 +498,37 @@ public class tuningAutoShootTeleop_v3 extends OpMode {
 //        } else {
 //            convey.setPosition(0.5);
 //        }
-
-        //***** MOTOR CONTROL (X / Y)
-        if (motorDebounce.milliseconds() > 300) {
-            if (gamepad1.x && !xAlrPressed) {
-                shooterPowerValue += tuningShooterIncrementConstant;
-                motorDebounce.reset();
-            }
-
-            if (gamepad1.y && !yAlrPressed) {
-                shooterPowerValue -= tuningShooterIncrementConstant;
-                motorDebounce.reset();
-            }
-        }
-        xAlrPressed = gamepad1.x;
-        yAlrPressed = gamepad1.y;
-
-        //--- Stop the FlyWheel
-        if (gamepad1.right_bumper) {
-            shooterPowerValue = 0.0;
-            servo_value = 0.5;
-        }
-        testmotor.setPower(shooterPowerValue);
-
-        //***** SERVO CONTROL (A / B)
-        if (servoDebounce.milliseconds() > 150) {
-            if (gamepad1.a) {
-                servoPositionValue += tuningServoIncrementConstant;
-                servoDebounce.reset();
-            } else if (gamepad1.b) {
-                servoPositionValue -= tuningServoIncrementConstant;
-                servoDebounce.reset();
-            }
+        if (autoShoot.isShooterStopped() || !doesiseeitfoundboi) {
+            testmotor.setPower(0);
+            // hoodservo optional here
+        } else {
+            autoShoot.advancedMathematics(limelightTy);
+            shooterPowerValue = autoShoot.getFlywheelPower();
+            servoPositionValue = autoShoot.getAnglePosition();
+            testmotor.setPower(shooterPowerValue);
+            hoodservo.setPosition(servoPositionValue);
         }
 
-        //***** Telemetry feedback
-        servoPositionValue = Math.max(0.0, Math.min(servo_value, 1.0));
-        hoodservo.setPosition(servoPositionValue);
-
-
-
-        // Telemetry feedback
-        telemetry.addData( "Timer (s)", timer.seconds());
-        //telemetry.addData("Shooter Power (0-1)", value);
 
         telemetry.addData("----- Shooter Data -----", null);
-        //telemetry.addData("AutoShoot: ", autoShootMessage);
-        //telemetry.addData("AutoShoot Stopped: ", autoShoot.isShooterStopped());
+        telemetry.addData("AutoShoot: ", autoShootMessage);
+        telemetry.addData("AutoShoot Stopped: ", autoShoot.isShooterStopped());
         telemetry.addData("AutoShoot(FlyWheel Power): ", shooterPowerValue);
         telemetry.addData("AutoShoot(Hood Position): ", servoPositionValue);
-        //telemetry.addData("AutoShoot(a Button): ", gamepad2.a);
-        //telemetry.addData("AutoShoot(a Button WasPressed): ", aButtonWasPressed);
+        telemetry.addData("AutoShoot(a Button): ", gamepad2.a);
+        telemetry.addData("AutoShoot(a Button WasPressed): ", aButtonWasPressed);
+        telemetry.addData("MotifPattern: ", motifPattern);
 
         telemetry.addData("----- Limelight Data -----", null);
         telemetry.addData("Limelight: ", limelightMessage);
         telemetry.addData("LimeLight(ty): ", limelightTy);
         telemetry.addData("LimeLight(tx): ", limelight_tx);
         telemetry.update();
+        // Telemetry feedback
+        telemetry.addData( "Timer (s)", timer.seconds());
+        telemetry.addData("Shooter Power (0-1)", value);
+        telemetry.update();
     }
-
     private boolean ifPressed(boolean button) {
         boolean output = false;
         if (booleanArray.size() == booleanIncrementer) {
