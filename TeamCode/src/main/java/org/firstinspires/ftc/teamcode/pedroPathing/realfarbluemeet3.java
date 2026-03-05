@@ -15,6 +15,8 @@ import java.util.List;
 @Autonomous(name="Far Blue")
 public class realfarbluemeet3 extends OpMode {
     DcMotor flywheel;
+    DcMotor flywheel2;
+
     Servo hoodservo;
     Servo slot1;
     Servo slot2;
@@ -190,6 +192,8 @@ public class realfarbluemeet3 extends OpMode {
         telemetry.update();
         turretmotor = hardwareMap.get(DcMotor.class, "turretmotor");
         flywheel=hardwareMap.get(DcMotor.class,"testemotor");
+        flywheel2=hardwareMap.get(DcMotor.class,"flywheelmotor2");
+
         hoodservo = hardwareMap.get(Servo.class, "hood");
         hoodservo.setPosition(0.8);
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
@@ -199,6 +203,8 @@ public class realfarbluemeet3 extends OpMode {
         lastTimeUpdated = System.nanoTime();
         startupDelayStart = System.currentTimeMillis();
         flywheel.setDirection(DcMotorSimple.Direction.REVERSE);
+        flywheel2.setDirection(DcMotorSimple.Direction.FORWARD);
+
         slot1=hardwareMap.get(Servo.class,"lift1");
         slot2=hardwareMap.get(Servo.class,"lift2");
         slot3=hardwareMap.get(Servo.class,"lift3");
@@ -212,6 +218,8 @@ public class realfarbluemeet3 extends OpMode {
     public void loop(){
         follower.update();
         flywheel.setPower(0.67);
+        flywheel2.setPower(0.67);
+
         updateFlicker();
         //updateIntakePulse();
 
