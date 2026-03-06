@@ -1,0 +1,604 @@
+package org.firstinspires.ftc.teamcode.teleop;
+
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
+import com.qualcomm.robotcore.hardware.NormalizedRGBA;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
+//import org.firstinspires.ftc.teamcode.hardware.AutoShooter;
+import org.firstinspires.ftc.teamcode.hardware.AutoShooter_UseVelocity;
+
+import org.firstinspires.ftc.teamcode.util.IndicatorLight;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@TeleOp(name="Blue Teleop - Set Velocity")
+@Disabled
+public class BlueTeleop_UseVelocity extends OpMode {
+
+    DcMotorEx testmotor;
+    DcMotorEx flywheelmotor2;
+    DcMotor intakemotor;
+
+    DcMotorEx motor_frontLeft;
+    DcMotorEx motor_frontRight;
+    DcMotorEx motor_backLeft;
+    DcMotorEx motor_backRight;
+    Servo liftservo;
+    Servo lift2servo;
+    Servo lift3servo;
+    Servo intake2servo;
+    Servo hoodservo; //--- Added for AutoShoot
+
+//    Servo aimservo;
+//
+//    Servo convey;
+
+    ArrayList<Boolean> booleanArray = new ArrayList<Boolean>();
+    int booleanIncrementer = 0;
+
+    int cycleMode = 0; // 0 = none, 1 = lift1, 2 = lift2, 3 = lift3
+
+    private boolean cycleRunning = false;
+    private double cycleStartTime = 0;
+    DcMotor poopeemotorey;
+    private Limelight3A lookylookyseesee;
+    ElapsedTime timer = new ElapsedTime();
+
+    private boolean rtWasPressed = false;
+    private boolean ltWasPressed = false;
+
+
+    double pPID = 0.011; //0.11 --> 0.04 (original value)
+    double dPID = 0.003; //0.003 --> 0.001 (original value)
+    double iPID = 0;
+    double lastTx = 0;
+    double derivativeTx = 0;
+    double lastTimeUpdated = 0;
+
+    //--- AutoShoot
+    double limelight_tx = 0;
+    double limelightTy = 0;
+    private boolean aButtonWasPressed = false;
+    private boolean bButtonWasPressed = false;
+
+    double shooterValue = 0;
+    double targetTicksPerSecond = 0;
+    double currentTicksPerSecond = 0;
+    double servoPositionValue = 0;
+    static double TICKS_PER_REV = 28.0;
+    static double MAX_RPM = 6000.0;
+    static double SHOOTER_MIN_LIMIT = 0.0; //shooterVelocityMinLimit;
+    static double SHOOTER_MAX_LIMIT = 5800.0; //shooterVelocityMaxLimit;
+
+
+
+
+    double servo_value = 0.5;
+    String limelightMessage = "No data available";
+    String autoShootMessage = "Shooter At Init";
+    final AutoShooter_UseVelocity autoShoot = new AutoShooter_UseVelocity(
+                                                            TICKS_PER_REV,
+                                                            MAX_RPM,
+                                                            SHOOTER_MIN_LIMIT,
+                                                            SHOOTER_MAX_LIMIT
+                                                        );
+    //--- End AutoShoot
+
+    double deadzone = 0.05;
+    private boolean jerkRunning = false;
+    private double jerkStartTime = 0;
+    private ElapsedTime jerkTimer = new ElapsedTime();
+
+    private double clampValue = 0.25;
+    private double value = 0;
+    public double speed = 1.0;
+    private ElapsedTime debounceTimer = new ElapsedTime();
+    private static final String SENSOR3_NAME = "color3";
+    private static final String SENSOR2_NAME = "color2";
+
+    private static final String INDICATOR3_NAME = "indicator3";
+    private static final String INDICATOR2_NAME = "indicator2";
+
+    private NormalizedColorSensor colorSensor3;
+    private NormalizedColorSensor colorSensor2;
+    private double colorPauseEnd2 = 0;
+    private double colorPauseEnd3 = 0;
+    private boolean pauseColor2 = false;
+    private boolean pauseColor3 = false;
+    private IndicatorLight light3;
+    private IndicatorLight light2;
+
+    // Store last locked colors independently
+    private String lastLockedColor3 = "unknown";
+    private String lastLockedColor2 = "unknown";
+
+    @Override
+    public void init() {
+        //testmotor      = hardwareMap.dcMotor.get("testemotor");
+        //flywheelmotor2 = hardwareMap.dcMotor.get("flywheelmotor2");
+        testmotor      = hardwareMap.get(DcMotorEx.class, "testemotor");
+        flywheelmotor2 = hardwareMap.get(DcMotorEx.class, "flywheelmotor2");
+
+        motor_frontLeft = hardwareMap.get(DcMotorEx.class, "lf");
+        motor_frontRight = hardwareMap.get(DcMotorEx.class, "rf");
+        motor_backLeft = hardwareMap.get(DcMotorEx.class, "lr");
+        motor_backRight = hardwareMap.get(DcMotorEx.class, "rr");
+
+        intakemotor = hardwareMap.dcMotor.get("intakemotor");
+        hoodservo = hardwareMap.get(Servo.class, "hood");
+        hoodservo.setPosition(servo_value);
+
+        poopeemotorey = hardwareMap.get(DcMotor.class, "turretmotor");
+        lookylookyseesee = hardwareMap.get(Limelight3A.class, "limelight");
+
+        telemetry.setMsTransmissionInterval(11);
+
+        lookylookyseesee.pipelineSwitch(0);
+        lookylookyseesee.start();
+        motor_frontLeft.setDirection(DcMotor.Direction.REVERSE);
+        motor_backRight.setDirection(DcMotor.Direction.REVERSE);
+        motor_frontRight.setDirection(DcMotor.Direction.FORWARD);
+        motor_backLeft.setDirection(DcMotor.Direction.REVERSE);
+        motor_backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        motor_frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        motor_frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        motor_backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+
+        //motor run mode
+        motor_frontLeft.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        motor_frontRight.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        motor_backLeft.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        motor_backRight.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+
+        motor_frontLeft.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+        motor_frontRight.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+        motor_backLeft.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+        motor_backRight.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+
+
+        liftservo = hardwareMap.get(Servo.class, "lift2");
+        lift2servo = hardwareMap.get(Servo.class, "lift1");
+        lift3servo = hardwareMap.get(Servo.class, "lift3");
+        intake2servo = hardwareMap.get(Servo.class, "intake2servo");
+        //       aimservo = hardwareMap.get(Servo.class, "aimservo");
+//        convey = hardwareMap.get(Servo.class, "convey");
+
+        testmotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        flywheelmotor2.setDirection(DcMotorSimple.Direction.FORWARD);
+
+        intakemotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        colorSensor3 = hardwareMap.get(NormalizedColorSensor.class, SENSOR3_NAME);
+        colorSensor2 = hardwareMap.get(NormalizedColorSensor.class, SENSOR2_NAME);
+
+        light3 = new IndicatorLight(hardwareMap, INDICATOR3_NAME);
+        light2 = new IndicatorLight(hardwareMap, INDICATOR2_NAME);
+        liftservo.setPosition(0.05); //0.05
+        lift2servo.setPosition(0.98); //0.9
+        lift3servo.setPosition(0.12);
+        //       aimservo.setPosition(0.5);
+
+
+        telemetry.addData("Status", "Initialized");
+        telemetry.update();
+    }
+
+    public void frontLeft(double power){
+        if (power > 1){
+            power = 1;
+        }
+        motor_frontLeft.setPower(power);
+    }
+    public void frontRight(double power){
+        if (power > 1){
+            power = 1;
+        }
+        motor_frontRight.setPower(power);
+    }
+    public void backLeft(double power){
+        if (power > 1){
+            power = 1;
+        }
+        motor_backLeft.setPower(power);
+    }
+    public void backRight(double power){
+        if (power > 1){
+            power = 1;
+        }
+        motor_backRight.setPower(power);
+    }
+
+    @Override
+    public void loop() {
+        booleanIncrementer = 0;
+        boolean gamePad1yIsPressed = ifPressed(gamepad1.y);
+        boolean gamePad1aIsPressed = ifPressed(gamepad1.a);
+        boolean gamePad1bIsPressed = ifPressed(gamepad1.b);
+
+        /***************************/
+        /****Drive Train Related ***/
+        /***************************/
+        double vx = speed*(-gamepad1.left_stick_y * (1 + gamepad1.left_trigger) * (1 - gamepad1.right_trigger));
+        double vy = speed*(gamepad1.left_stick_x * (1 + gamepad1.left_trigger) * (1 - gamepad1.right_trigger));
+        double o = speed*(gamepad1.right_stick_x * (1 + gamepad1.left_trigger) * (1 - gamepad1.right_trigger));//*//some value;
+
+        if (gamePad1yIsPressed){
+            speed = 0.7;
+        }
+        if (gamePad1bIsPressed){
+            speed = 0.3;
+        }
+        if (gamePad1aIsPressed){
+            speed = 1.5;
+        }
+
+        double leftFrontPower  = vx + vy + o;
+        double rightFrontPower = vx - vy - o;
+        double leftBackPower   = vx - vy + o;
+        double rightBackPower  = vx + vy - o;
+
+
+        // Normalize the values so no wheel power exceeds 100%
+        // This ensures that the robot maintains the desired motion.
+        double max = Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower));
+        max = Math.max(max, Math.abs(leftBackPower));
+        max = Math.max(max, Math.abs(rightBackPower));
+
+        if (max > 1.0) {
+            leftFrontPower  /= max;
+            rightFrontPower /= max;
+            leftBackPower   /= max;
+            rightBackPower  /= max;
+        }
+        // calculate the speed for each wheel and drive
+        frontLeft(leftFrontPower);
+        frontRight(rightFrontPower);
+        backLeft(leftBackPower);
+        backRight(rightBackPower);
+
+        telemetry.addData("frontLeft", leftFrontPower);
+        telemetry.addData("frontRight", rightFrontPower);
+        telemetry.addData("backLeft", leftBackPower);
+        telemetry.addData("backRight", rightBackPower);
+
+
+
+        /***************************/
+        /****Jerk ***/
+        /***************************/
+        // Start jerk sequence on button press
+        if (gamepad1.x && !jerkRunning) {
+            jerkRunning = true;
+            jerkStartTime = jerkTimer.milliseconds();
+        }
+
+// Run the jerk sequence
+        if (jerkRunning) {
+            double t = jerkTimer.milliseconds() - jerkStartTime;
+
+            if (t < 210) {
+                // Drive forward fast for 200 ms
+                frontLeft(1.0);
+                frontRight(1.0);
+                backLeft(1.0);
+                backRight(1.0);
+            }
+            else if (t < 400) {
+                // Then drive backwards fast for 200 ms
+                frontLeft(-1.0);
+                frontRight(-1.0);
+                backLeft(-1.0);
+                backRight(-1.0);
+            }
+            else if (t < 420) {
+                frontLeft(0.9);
+                backLeft(0.9);
+                frontRight(-0.9);
+                backRight(-0.9);
+            }
+            else {
+                // End sequence
+                jerkRunning = false;
+
+                // STOP the robot
+                frontLeft(0);
+                frontRight(0);
+                backLeft(0);
+                backRight(0);
+            }
+        }
+
+
+        /***************************/
+        /**** Dpadformotor? ***/
+        /***************************/
+//
+//        if (debounceTimer.milliseconds() > 100) {
+//            if (gamepad2.dpad_up) {
+//                value += 0.05;
+//                debounceTimer.reset();
+//            } else if (gamepad2.dpad_down) {
+//                value -= 0.05;
+//                debounceTimer.reset();
+//            }
+//        }
+
+        if (gamepad2.dpad_left  && !cycleRunning) { cycleRunning = true; cycleMode = 1; cycleStartTime = timer.milliseconds(); }
+        if (gamepad2.dpad_right && !cycleRunning) { cycleRunning = true; cycleMode = 2; cycleStartTime = timer.milliseconds(); }
+        if (gamepad2.dpad_down && !cycleRunning) { cycleRunning = true; cycleMode = 3; cycleStartTime = timer.milliseconds(); }
+
+        if (cycleRunning) {
+            double t = timer.milliseconds() - cycleStartTime;
+
+
+            //slot1 = lift2servo, slot2 = liftservo, slot3 = lift3servo
+
+
+
+            if (cycleMode == 1) {
+                if (t < 300) liftservo.setPosition(0.58); //0.55
+                else if (t < 500) {
+                    liftservo.setPosition(0.05);//0.05
+                }
+                else { cycleRunning = false; cycleMode = 0; }
+            }
+            else if (cycleMode == 2) {
+                if (t < 300) lift2servo.setPosition(0.47); //0.30
+                else if (t < 500) {
+                    lift2servo.setPosition(0.98);
+                    lastLockedColor2 = "unknown";
+                    light2.white();
+                    pauseColor2 = true;
+                    colorPauseEnd2 = timer.milliseconds() + 2500;
+                }
+                else { cycleRunning = false; cycleMode = 0; }
+            }
+            else if (cycleMode == 3) {
+                if (t < 300) lift3servo.setPosition(0.63);
+                else if (t < 500) {
+                    lift3servo.setPosition(0.12);
+                    lastLockedColor3 = "unknown";
+                    light3.white();
+                    pauseColor3 = true;
+                    colorPauseEnd3 = timer.milliseconds() + 2500;
+                }
+                else { cycleRunning = false; cycleMode = 0; }
+            }
+        }
+
+        /***************************/
+        /**** Intake ***/
+        /***************************/
+
+
+        if (gamepad2.b || gamepad1.x) {
+            intakemotor.setPower(0);
+            intake2servo.setPosition(0.5);
+        }
+
+        if (gamepad2.y || gamepad1.dpad_up) {
+            intakemotor.setPower(1.0);
+            intake2servo.setPosition(1.0);
+        }
+
+        if (gamepad2.x || gamepad1.right_bumper || gamepad1.left_bumper) {
+            intakemotor.setPower(-1.0);
+            intake2servo.setPosition(0.0);
+        }
+
+        value = Math.max(0.0, Math.min(value, 1.0));
+
+
+// Telemetry
+/***************************/
+/**** Do I see gangster rapper? ***/
+/***************************/
+
+
+        //if (gamepad2.a && !aButtonWasPressed && !autoShoot.isShooterStopped()) {
+        if (gamepad2.a && !aButtonWasPressed && autoShoot.isShooterStopped()) {
+            autoShoot.startShooter();
+            autoShootMessage = "Pressed and started";
+        }
+
+        //if (gamepad2.b && !aButtonWasPressed && autoShoot.isShooterStopped()) {
+        if (gamepad2.right_bumper && !bButtonWasPressed && !autoShoot.isShooterStopped()) {
+            autoShoot.stopShooter();
+            autoShootMessage = "Pressed and stopped";
+        }
+        aButtonWasPressed = gamepad2.a;
+        bButtonWasPressed = gamepad2.right_bumper;
+
+        ///*** End Flywheel On/Off ***/
+
+        LLResult resultsofpooe = lookylookyseesee.getLatestResult();
+        boolean doesiseeitfoundboi = false;
+
+        if (resultsofpooe != null && resultsofpooe.isValid()) {
+            List<LLResultTypes.FiducialResult> fiducialResults2 = resultsofpooe.getFiducialResults();
+            for (LLResultTypes.FiducialResult fr : fiducialResults2) {
+
+                telemetry.addData("FiducialID", fr.getFiducialId());
+                //--- For Auto Aim ---//
+//                Double TxValue = resultsofpooe.getTx();
+                //--- Get LimeLight Tx
+                limelight_tx = fr.getTargetXDegrees();
+                limelightTy  = fr.getTargetYDegrees();
+                //--- If Red Target
+                if (fr.getFiducialId() == 20) {
+                    derivativeTx = 1000000000.0 * (limelight_tx - lastTx) / (System.nanoTime() - lastTimeUpdated);
+                    poopeemotorey.setPower(pPID * limelight_tx + dPID * derivativeTx); //TxValue
+                    doesiseeitfoundboi = true;
+                    lastTx = limelight_tx;
+                    lastTimeUpdated = System.nanoTime();
+                }
+
+            }
+
+        }
+        if (!doesiseeitfoundboi) {
+            limelightMessage = "No data available";
+        } else {
+            limelightMessage = "Data is available";
+        }
+
+        if (autoShoot.isShooterStopped() || !doesiseeitfoundboi) {
+
+            if (gamepad2.left_bumper) {
+                testmotor.setVelocity(0.62);
+                flywheelmotor2.setVelocity(0.62);
+            }
+            if (gamepad2.right_bumper) {
+                testmotor.setVelocity(0.3);
+                flywheelmotor2.setVelocity(0.3);
+            }
+
+            double turretPower = 0.0; // DEFAULT = stop
+
+            if (gamepad1.left_trigger > 0.05) {
+                turretPower =  gamepad1.left_trigger * 0.35;
+            }
+            else if (gamepad1.right_trigger > 0.05) {
+                turretPower = -gamepad1.right_trigger * 0.35;
+            }
+
+            poopeemotorey.setPower(turretPower); // ALWAYS set
+
+        } else {
+            autoShoot.advancedMathematics(limelightTy);
+            shooterValue = autoShoot.getFlywheelValue();
+
+            servoPositionValue = autoShoot.getAnglePosition();
+            testmotor.setVelocity(shooterValue);
+            flywheelmotor2.setVelocity(shooterValue);
+
+            hoodservo.setPosition(servoPositionValue);
+        }
+        String detected3 = "unknown";
+        String detected2 = "unknown";
+
+        if (!pauseColor3 || timer.milliseconds() > colorPauseEnd3) {
+            pauseColor3 = false;
+            detected3 = detectColor(colorSensor3);
+        }
+
+        if (!pauseColor2 || timer.milliseconds() > colorPauseEnd2) {
+            pauseColor2 = false;
+            detected2 = detectColor(colorSensor2);
+        }
+
+        /* ADD THIS PART BACK */
+
+// Sensor 3 locking
+        if (!pauseColor3) {
+            if (detected3.equals("green") || detected3.equals("purple")) {
+                lastLockedColor3 = detected3;
+            }
+        }
+
+// Sensor 2 locking
+        if (!pauseColor2) {
+            if (detected2.equals("green") || detected2.equals("purple")) {
+                lastLockedColor2 = detected2;
+            }
+        }
+        if (pauseColor3) {
+            light3.white();
+        }
+        else if (lastLockedColor3.equals("green")) {
+            light3.green();
+        }
+        else if (lastLockedColor3.equals("purple")) {
+            light3.violet();
+        }
+        if (pauseColor2) {
+            light2.white();
+        }
+        else if (lastLockedColor2.equals("green")) {
+            light2.green();
+        }
+        else if (lastLockedColor2.equals("purple")) {
+            light2.violet();
+        }
+        telemetry.addData("Sensor3 Detected", detected3);
+        telemetry.addData("Sensor3 Locked", lastLockedColor3);
+        telemetry.addData("Sensor2 Detected", detected2);
+        telemetry.addData("Sensor2 Locked", lastLockedColor2);
+        telemetry.addData("----- Shooter Data -----", null);
+        telemetry.addData("AutoShoot: ", autoShootMessage);
+        telemetry.addData("AutoShoot Stopped: ", autoShoot.isShooterStopped());
+        telemetry.addData("AutoShoot(FlyWheel Value): ", shooterValue);
+        telemetry.addData("AutoShoot(Hood Position): ", servoPositionValue);
+        telemetry.addData("AutoShoot(a Button): ", gamepad2.a);
+        telemetry.addData("AutoShoot(a Button WasPressed): ", aButtonWasPressed);
+
+
+        telemetry.addData("----- Limelight Data -----", null);
+        telemetry.addData("Limelight: ", limelightMessage);
+        telemetry.addData("LimeLight(ty): ", limelightTy);
+        telemetry.addData("LimeLight(tx): ", limelight_tx);
+        telemetry.update();
+        // Telemetry feedback
+        telemetry.addData( "Timer (s)", timer.seconds());
+        telemetry.addData("Shooter Power (0-1)", value);
+        telemetry.update();
+    }
+    private String detectColor(NormalizedColorSensor sensor) {
+        NormalizedRGBA rgba = sensor.getNormalizedColors();
+
+        double r = clamp01(rgba.red);
+        double g = clamp01(rgba.green);
+        double b = clamp01(rgba.blue);
+
+        double intensity = r + g + b;
+        boolean brightEnough = intensity > 0.06;
+        boolean notBlownOut = intensity < 2.7;
+
+        double sum = Math.max(1e-6, intensity);
+        double rn = r / sum;
+        double gn = g / sum;
+        double bn = b / sum;
+
+        boolean isGreen = brightEnough && notBlownOut &&
+                gn > 0.45 &&
+                gn > rn + 0.05 &&
+                gn > bn + 0.05;
+
+        boolean isPurple = brightEnough && notBlownOut &&
+                rn > 0.20 &&
+                bn > 0.40 &&
+                gn < 0.35 &&
+                Math.abs(rn - bn) < 0.30;
+
+        if (isGreen) return "green";
+        if (isPurple) return "purple";
+        return "unknown"; // does NOT reset lock
+    }
+    private double clamp01(float v) {
+        return Math.max(0.0, Math.min(1.0, v));
+    }
+    private boolean ifPressed(boolean button) {
+        boolean output = false;
+        if (booleanArray.size() == booleanIncrementer) {
+            booleanArray.add(false);
+        }
+        boolean buttonWas = booleanArray.get(booleanIncrementer);
+        if (button != buttonWas && button == true) {
+            output = true;
+        }
+        booleanArray.set(booleanIncrementer, button);
+        booleanIncrementer = booleanIncrementer + 1;
+        return output;
+    }
+
+}
