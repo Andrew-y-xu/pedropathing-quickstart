@@ -89,6 +89,7 @@ public class RedAutoAlternateOrder extends OpMode {
     }
 
 
+
     public void updateFlicker() {
         if (!flickerActive) return;
 
@@ -104,16 +105,18 @@ public class RedAutoAlternateOrder extends OpMode {
                 break;
 
             case 1: // Slot 1 down
-                if (now - flickerTimer >= upTime) {
+                //if (now - flickerTimer >= upTime) {
+                if (now - flickerTimer >= 300) {
 
-                    slot1.setPosition(0.98);
-                    flickerTimer = now;
-                    flickerState++;
+                        slot1.setPosition(0.98);
+                        flickerTimer = now;
+                        flickerState++;
                 }
                 break;
 
             case 2: // Slot 2 up
-                if (now - flickerTimer >= downTime) {
+                //if (now - flickerTimer >= downTime) {
+                if (now - flickerTimer >= 500) {
 
                     slot2.setPosition(0.58);
                     flickerTimer = now;
@@ -122,8 +125,8 @@ public class RedAutoAlternateOrder extends OpMode {
                 break;
 
             case 3: // Slot 2 down
-                if (now - flickerTimer >= upTime) {
-
+                //if (now - flickerTimer >= upTime) {
+                if (now - flickerTimer >= 800) {
                     slot2.setPosition(0.05);
                     flickerTimer = now;
                     flickerState++;
@@ -131,7 +134,8 @@ public class RedAutoAlternateOrder extends OpMode {
                 break;
 
             case 4: // Slot 3 up
-                if (now - flickerTimer >= downTime) {
+                //if (now - flickerTimer >= downTime) {
+                if (now - flickerTimer >= 1000) {
                     slot3.setPosition(0.63);
                     flickerTimer = now;
                     flickerState++;
@@ -139,7 +143,8 @@ public class RedAutoAlternateOrder extends OpMode {
                 break;
 
             case 5: // Slot 3 down
-                if (now - flickerTimer >= upTime) {
+                //if (now - flickerTimer >= upTime) {
+                if (now - flickerTimer >= 1300) {
                     slot3.setPosition(0.12);
                     flickerActive = false; // DONE
                 }

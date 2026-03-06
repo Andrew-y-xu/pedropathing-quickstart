@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
+
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
@@ -9,6 +10,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
@@ -347,7 +350,7 @@ public class BlueTeleop extends OpMode {
             if (cycleMode == 1) {
                 if (t < 300) liftservo.setPosition(0.58); //0.55
                 else if (t < 500) {
-                    liftservo.setPosition(0.05);//0.05
+                    liftservo.setPosition(0.05);//0.0505
                     lastLockedColor1 = "unknown";
                     light1.white();
                     pauseColor1 = true;
