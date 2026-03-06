@@ -16,6 +16,8 @@ import java.util.List;
 @Autonomous(name="Blue Close")
 public class BlueAutoAlternateOrder extends OpMode {
     DcMotor flywheel;
+    DcMotor flywheel2;
+
     Servo hoodservo;
     Servo slot1;
     Servo slot2;
@@ -35,7 +37,7 @@ public class BlueAutoAlternateOrder extends OpMode {
     DcMotor turretmotor;
     double lastTx = 0;
     double lastTimeUpdated = 0;
-    double pPID = 0.13; //0.11 --> 0.04 (original value)
+    double pPID = 0.011; //0.11 --> 0.04 (original value)
     double dPID = 0.003; //0.003 --> 0.001 (original value)
     Servo intake2;
 
@@ -221,6 +223,8 @@ public class BlueAutoAlternateOrder extends OpMode {
         telemetry.update();
         turretmotor = hardwareMap.get(DcMotor.class, "turretmotor");
         flywheel=hardwareMap.get(DcMotor.class,"testemotor");
+        flywheel2=hardwareMap.get(DcMotor.class,"flywheelmotor2");
+
         hoodservo = hardwareMap.get(Servo.class, "hood");
         hoodservo.setPosition(0.68);
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
@@ -230,6 +234,8 @@ public class BlueAutoAlternateOrder extends OpMode {
         lastTimeUpdated = System.nanoTime();
 
         flywheel.setDirection(DcMotorSimple.Direction.REVERSE);
+        flywheel2.setDirection(DcMotorSimple.Direction.FORWARD);
+
         slot1=hardwareMap.get(Servo.class,"lift1");
         slot2=hardwareMap.get(Servo.class,"lift2");
         slot3=hardwareMap.get(Servo.class,"lift3");
@@ -307,6 +313,8 @@ public class BlueAutoAlternateOrder extends OpMode {
             // ---- Go to hub (ends at shared point), then flick, then leave ----
             case 0:
                 flywheel.setPower(0.63);
+                flywheel2.setPower(0.63);
+
                 follower.followPath(paths.Path1);
                 pathState = 1;
                 break;
@@ -333,6 +341,8 @@ public class BlueAutoAlternateOrder extends OpMode {
             case 101: // wait for flicker to finish, then go to Path2
                 if (flickerDone()) {
                     flywheel.setPower(0.54);
+                    flywheel2.setPower(0.54);
+
                     intakeMode = IntakeMode.INTAKE;
                     follower.setMaxPower(0.75);
                     follower.followPath(paths.Path2, true);

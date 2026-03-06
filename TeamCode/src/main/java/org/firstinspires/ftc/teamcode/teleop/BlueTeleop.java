@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
+import com.arcrobotics.ftclib.controller.PIDController;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -49,8 +50,8 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import java.util.ArrayList;
 
-@TeleOp(name="Blue Teleop")
-public class decodeteleop extends OpMode {
+@TeleOp(name="Red Teleop")
+public class decode2 extends OpMode {
 
     DcMotor testmotor;
     DcMotor intakemotor;
@@ -83,10 +84,8 @@ public class decodeteleop extends OpMode {
     private boolean rtWasPressed = false;
     private boolean ltWasPressed = false;
 
-
-
-    double pPID = 0.18; //0.13 --> 0.04 (original value)
-    double dPID = 0.006; //0.003 --> 0.001 (original value)
+    double pPID = 0.13; //0.11 --> 0.04 (original value)
+    double dPID = 0.003; //0.003 --> 0.001 (original value)
     double iPID = 0;
     double lastTx = 0;
     double derivativeTx = 0;
@@ -457,7 +456,7 @@ public class decodeteleop extends OpMode {
                 limelight_tx = fr.getTargetXDegrees();
                 limelightTy = fr.getTargetYDegrees();
                 //--- If Red Target
-                if (fr.getFiducialId() ==20) {
+                if (fr.getFiducialId() ==24) {
                     derivativeTx = 1000000000.0 * (limelight_tx - lastTx) / (System.nanoTime() - lastTimeUpdated);
                     poopeemotorey.setPower(pPID * limelight_tx + dPID * derivativeTx); //TxValue
                     doesiseeitfoundboi = true;
@@ -551,6 +550,7 @@ public class decodeteleop extends OpMode {
             testmotor.setPower(shooterPowerValue);
             hoodservo.setPosition(servoPositionValue);
         }
+
 
 
 
