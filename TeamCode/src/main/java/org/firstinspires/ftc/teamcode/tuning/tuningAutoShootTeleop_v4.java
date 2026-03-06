@@ -28,7 +28,6 @@ package org.firstinspires.ftc.teamcode.tuning;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -42,9 +41,12 @@ import org.firstinspires.ftc.teamcode.hardware.AutoShooter;
 import java.util.ArrayList;
 import java.util.List;
 
+/*
+    Test Auto shooter
+ */
 @TeleOp(name="Tuning AutoShootTeleop_v3")
 //@Disabled
-public class tuningAutoShootTeleop_v3 extends OpMode {
+public class tuningAutoShootTeleop_v4 extends OpMode {
 
     DcMotor testmotor;
     DcMotor flywheelmotor2;
@@ -408,6 +410,7 @@ public class tuningAutoShootTeleop_v3 extends OpMode {
         //bButtonWasPressed = gamepad2.right_bumper;
 
         //***** MOTOR CONTROL (X / Y)
+        /*
         if (motorDebounce.milliseconds() > 300) {
             if (gamepad1.x && !xAlrPressed) {
                 shooter_value += tuningShooterIncrementConstant;
@@ -421,6 +424,7 @@ public class tuningAutoShootTeleop_v3 extends OpMode {
                 motorDebounce.reset();
             }
         }
+        */
         xAlrPressed = gamepad1.x;
         yAlrPressed = gamepad1.y;
 
@@ -447,6 +451,7 @@ public class tuningAutoShootTeleop_v3 extends OpMode {
 
         ///*** End Flywheel On/Off ***/
 
+        autoShoot.startShooter();
         LLResult resultsofpooe = lookylookyseesee.getLatestResult();
         boolean doesiseeitfoundboi = false;
 
@@ -488,13 +493,14 @@ public class tuningAutoShootTeleop_v3 extends OpMode {
                 */
 
                     //--- Get LimeLight Ty
-                    //autoShoot.advancedMathematics(limelightTy);
+                    autoShoot.advancedMathematics(limelightTy);
                     //--- Shooter FlyWheel
-                    //shooterPowerValue = autoShoot.getFlywheelPower();  //--- Update Shooter FlyWheel math here, or use new shooter class for object
-                    //testmotor.setPower(shooterPowerValue);
+                    shooterPowerValue = autoShoot.getFlywheelPower();  //--- Update Shooter FlyWheel math here, or use new shooter class for object
+                    testmotor.setPower(shooterPowerValue);
+                    flywheelmotor2.setPower(shooterPowerValue);
                     //--- Shooter Angle
-                    //servoPositionValue = autoShoot.getAnglePosition();  //--- Update Shooter Angle math here, or use new shooter class for object
-                    //hoodservo.setPosition(servoPositionValue);
+                    servoPositionValue = autoShoot.getAnglePosition();  //--- Update Shooter Angle math here, or use new shooter class for object
+                    hoodservo.setPosition(servoPositionValue);
                     break;
                 }
 
