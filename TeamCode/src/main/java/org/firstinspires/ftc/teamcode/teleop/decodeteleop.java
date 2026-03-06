@@ -85,8 +85,8 @@ public class decodeteleop extends OpMode {
 
 
 
-    double pPID = 0.13; //0.11 --> 0.04 (original value)
-    double dPID = 0.003; //0.003 --> 0.001 (original value)
+    double pPID = 0.18; //0.13 --> 0.04 (original value)
+    double dPID = 0.006; //0.003 --> 0.001 (original value)
     double iPID = 0;
     double lastTx = 0;
     double derivativeTx = 0;
