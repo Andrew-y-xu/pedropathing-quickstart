@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.teleop;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -21,6 +22,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.firstinspires.ftc.teamcode.util.DetectableColor;
 import org.firstinspires.ftc.teamcode.util.IndicatorLight;
 
 @TeleOp(name="Blue Teleop")
@@ -39,6 +41,11 @@ public class BlueTeleop extends OpMode {
     Servo lift3servo;
     Servo intake2servo;
     Servo hoodservo; //--- Added for AutoShoot
+    private DetectableColor pin0Color;
+    private DetectableColor pin1Color;
+    private DigitalChannel digitalPin0;
+    private DigitalChannel digitalPin1;
+
 
 //    Servo aimservo;
 //
@@ -91,22 +98,29 @@ public class BlueTeleop extends OpMode {
     private ElapsedTime debounceTimer = new ElapsedTime();
     private static final String SENSOR3_NAME = "color3";
     private static final String SENSOR2_NAME = "color2";
+    private static final String SENSOR1_NAME = "color1";
 
     private static final String INDICATOR3_NAME = "indicator3";
     private static final String INDICATOR2_NAME = "indicator2";
+    private static final String INDICATOR1_NAME = "indicator1";
 
     private NormalizedColorSensor colorSensor3;
     private NormalizedColorSensor colorSensor2;
+    private DetectableColor colorSensor1;
+    private double colorPauseEnd1 = 0;
     private double colorPauseEnd2 = 0;
     private double colorPauseEnd3 = 0;
+    private boolean pauseColor1 = false;
     private boolean pauseColor2 = false;
     private boolean pauseColor3 = false;
     private IndicatorLight light3;
     private IndicatorLight light2;
+    private IndicatorLight light1;
 
     // Store last locked colors independently
     private String lastLockedColor3 = "unknown";
     private String lastLockedColor2 = "unknown";
+    private String lastLockedColor1 = "unknown";
 
     @Override
     public void init() {
@@ -163,9 +177,11 @@ public class BlueTeleop extends OpMode {
         intakemotor.setDirection(DcMotorSimple.Direction.REVERSE);
         colorSensor3 = hardwareMap.get(NormalizedColorSensor.class, SENSOR3_NAME);
         colorSensor2 = hardwareMap.get(NormalizedColorSensor.class, SENSOR2_NAME);
+        colorSensor1 = hardwareMap.get(DetectableColor.class, SENSOR1_NAME);
 
         light3 = new IndicatorLight(hardwareMap, INDICATOR3_NAME);
         light2 = new IndicatorLight(hardwareMap, INDICATOR2_NAME);
+        light1 = new IndicatorLight(hardwareMap, INDICATOR1_NAME);
         liftservo.setPosition(0.05); //0.05
         lift2servo.setPosition(0.98); //0.9
         lift3servo.setPosition(0.12);
@@ -332,6 +348,10 @@ public class BlueTeleop extends OpMode {
                 if (t < 300) liftservo.setPosition(0.58); //0.55
                 else if (t < 500) {
                     liftservo.setPosition(0.05);//0.05
+                    lastLockedColor1 = "unknown";
+                    light1.white();
+                    pauseColor1 = true;
+                    colorPauseEnd1 = timer.milliseconds() + 2500;
                 }
                 else { cycleRunning = false; cycleMode = 0; }
             }
@@ -572,6 +592,7 @@ public class BlueTeleop extends OpMode {
         }
         String detected3 = "unknown";
         String detected2 = "unknown";
+        String detected1 = "unknown";
 
         if (!pauseColor3 || timer.milliseconds() > colorPauseEnd3) {
             pauseColor3 = false;
@@ -581,6 +602,11 @@ public class BlueTeleop extends OpMode {
         if (!pauseColor2 || timer.milliseconds() > colorPauseEnd2) {
             pauseColor2 = false;
             detected2 = detectColor(colorSensor2);
+        }
+
+        if(!pauseColor1 || timer.milliseconds() > colorPauseEnd1){
+            pauseColor1 = false;
+            detected1 = isColorDetected(colorSensor1);
         }
 
         /* ADD THIS PART BACK */
@@ -596,6 +622,12 @@ public class BlueTeleop extends OpMode {
         if (!pauseColor2) {
             if (detected2.equals("green") || detected2.equals("purple")) {
                 lastLockedColor2 = detected2;
+            }
+        }
+
+        if(!pauseColor1){
+            if(detected1.equals("green") || detected1.equals("purple")){
+                lastLockedColor1 = detected1;
             }
         }
         if (pauseColor3) {
@@ -615,6 +647,15 @@ public class BlueTeleop extends OpMode {
         }
         else if (lastLockedColor2.equals("purple")) {
             light2.violet();
+        }
+        if(pauseColor1){
+            light1.white();
+        }
+        else if(lastLockedColor1.equals("green")){
+            light1.green();
+        }
+        else if(lastLockedColor1.equals("purple")){
+            light1.violet();
         }
         telemetry.addData("Sensor3 Detected", detected3);
         telemetry.addData("Sensor3 Locked", lastLockedColor3);
@@ -669,6 +710,26 @@ public class BlueTeleop extends OpMode {
         if (isGreen) return "green";
         if (isPurple) return "purple";
         return "unknown"; // does NOT reset lock
+    }
+
+    public String isColorDetected(DetectableColor color) {
+        requireDigital();
+        if (color == pin0Color && digitalPin0.getState()) {
+            return "purple";
+        }
+        if (color == pin1Color && digitalPin1.getState()) {
+            return "green";
+        }
+        return "unknown";
+    }
+    private void requireDigital() {
+        if (digitalPin0 == null || digitalPin1 == null) {
+            throw new IllegalStateException(
+                    "ColorDetector was not created with "
+                            + "forDigitalRead(). Cannot read digital "
+                            + "pins."
+            );
+        }
     }
     private double clamp01(float v) {
         return Math.max(0.0, Math.min(1.0, v));
