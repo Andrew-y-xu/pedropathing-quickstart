@@ -356,7 +356,7 @@ public class tuningAutoShootTeleop_v3 extends OpMode {
 
         if (gamepad2.b) {
             intakemotor.setPower(0);
-            intakeservo.setPosition(0);
+            intakeservo.setPosition(0.5); //Continous Servo use mid point to stop.  Range is 0-1
         }
         if (gamepad2.y) {
             intakemotor.setPower(1.0);
@@ -366,6 +366,7 @@ public class tuningAutoShootTeleop_v3 extends OpMode {
             intakemotor.setPower(-1.0);
             intakeservo.setPosition(-1);
         }
+
 
 ///***************************/
 ///**** Clamp Servo – gamepad2 RIGHT stick smooth control ***/

@@ -49,10 +49,10 @@ public class AutoShooter {
         } else { //--- Run the FlyWheel for Auto
 
             //--- Do the math here <TBD>
-            double powerAConstant = 0.0147369;
-            double powerBConstant = 0.629345;
+            double powerAConstant = 0.0136112;
+            double powerBConstant = 0.588231;
 
-            double hoodPositionConstant = 0.92;
+            double hoodPositionConstant = 0.40;
 
             // Top small Triangle with distant(ty) greater than 2.5
             if( this.distantTy >= 2.5) {
