@@ -47,6 +47,8 @@ import java.util.List;
 public class tuningAutoShootTeleop_v3 extends OpMode {
 
     DcMotor testmotor;
+    DcMotor flywheelmotor2;
+
     DcMotor intakemotor;
     Servo intakeservo;
 
@@ -120,7 +122,9 @@ public class tuningAutoShootTeleop_v3 extends OpMode {
 
     @Override
     public void init() {
-        testmotor = hardwareMap.dcMotor.get("testemotor");
+        testmotor      = hardwareMap.dcMotor.get("testemotor");
+        flywheelmotor2 = hardwareMap.dcMotor.get("flywheelmotor2");
+
         motor_frontLeft = hardwareMap.get(DcMotorEx.class, "lf");
         motor_frontRight = hardwareMap.get(DcMotorEx.class, "rf");
         motor_backLeft = hardwareMap.get(DcMotorEx.class, "lr");
@@ -169,6 +173,8 @@ public class tuningAutoShootTeleop_v3 extends OpMode {
 //        convey = hardwareMap.get(Servo.class, "convey");
 
         testmotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        flywheelmotor2.setDirection(DcMotorSimple.Direction.FORWARD);
+
         intakemotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         liftservo.setPosition(0.05); //0.05
@@ -488,6 +494,7 @@ public class tuningAutoShootTeleop_v3 extends OpMode {
             servo_value = 0.5;
         }
         testmotor.setPower(shooter_value);
+        flywheelmotor2.setPower(shooter_value);
 
         //***** SERVO CONTROL (A / B)
         if (servoDebounce.milliseconds() > 150) {
@@ -560,6 +567,8 @@ public class tuningAutoShootTeleop_v3 extends OpMode {
 
         shooterPowerValue = autoShoot.getFlywheelPower();  //--- Update Shooter FlyWheel math here, or use new shooter class for object
         testmotor.setPower(shooterPowerValue);
+        flywheelmotor2.setPower(shooterPowerValue);
+
         //--- Shooter Angle
         servoPositionValue = autoShoot.getAnglePosition();  //--- Update Shooter Angle math here, or use new shooter class for object
         hoodservo.setPosition(servoPositionValue);
@@ -613,6 +622,7 @@ public class tuningAutoShootTeleop_v3 extends OpMode {
             servo_value = 0.5;
         }
         testmotor.setPower(shooterPowerValue);
+        flywheelmotor2.setPower(shooterPowerValue);
 
         //***** SERVO CONTROL (A / B)
         if (servoDebounce.milliseconds() > 150) {
