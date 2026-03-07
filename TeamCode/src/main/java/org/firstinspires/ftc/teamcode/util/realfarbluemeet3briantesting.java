@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.pedroPathing;
+package org.firstinspires.ftc.teamcode.util;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
@@ -7,17 +7,17 @@ import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+
 import java.util.List;
-@Disabled
-@Autonomous(name="Far Red")
-public class realfarredmeet3 extends OpMode {
+@Autonomous(name="Far Blue")
+public class realfarbluemeet3briantesting extends OpMode {
     DcMotor flywheel;
     DcMotor flywheel2;
 
@@ -35,7 +35,7 @@ public class realfarredmeet3 extends OpMode {
     double lastTx = 0;
     double lastTimeUpdated = 0;
     double pPID = 0.015; //0.11 --> 0.04 (original value)
-    double dPID = 0.003; //0.003 --> 0.001 (original value)
+    double dPID = 0.0002; //0.003 --> 0.001 (original value)
     double iPID = 0;
     Servo intake2;
 
@@ -164,7 +164,7 @@ public class realfarredmeet3 extends OpMode {
                             new BezierLine(
                                     new Pose(96.000, 8.000),
 
-                                    new Pose(136.000, 8.000)
+                                    new Pose(132.00, 8.000)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
 
@@ -172,7 +172,7 @@ public class realfarredmeet3 extends OpMode {
 
             Path2 = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(136.000, 8.000),
+                                    new Pose(132.00, 8.000),
 
                                     new Pose(96.000, 8.000)
                             )
@@ -203,7 +203,7 @@ public class realfarredmeet3 extends OpMode {
 
     public void init(){
         follower = Constants.createFollower(hardwareMap);
-        paths = new realfarredmeet3.Paths(follower);
+        paths = new realfarbluemeet3briantesting.Paths(follower);
         follower.setStartingPose(new Pose(96, 8, Math.toRadians(0)));
         intake=hardwareMap.get(DcMotor.class,"intakemotor");
         intake2=hardwareMap.get(Servo.class, "intake2servo");
@@ -234,7 +234,7 @@ public class realfarredmeet3 extends OpMode {
 
 
     }
-//    public void start(){
+    //    public void start(){
 //        timer.reset();
 //    }
     public void loop(){
@@ -281,16 +281,32 @@ public class realfarredmeet3 extends OpMode {
             List<LLResultTypes.FiducialResult> fiducialResults2 = resultsofpooe.getFiducialResults();
             for (LLResultTypes.FiducialResult fr : fiducialResults2) {
                 double tx = fr.getTargetXDegrees();
-                if(fr.getFiducialId()>0) {
-                    derivativeTx = 1000000000.0*(tx-lastTx)/(System.nanoTime()-lastTimeUpdated);
-                    turretmotor.setPower(pPID * tx + dPID * derivativeTx); //TxValue
-                    doesiseeitfoundboi = true;
+                if (fr.getFiducialId() > 0) {
+
+                    // --- Only calculate derivative if lastTx is valid ---
+                    double derivativeTxLocal = 0;
+                    if (!Double.isNaN(lastTx)) {
+                        derivativeTxLocal = 1000000000.0 * (tx - lastTx) / (System.nanoTime() - lastTimeUpdated);
+                    }
+
+                    // --- Compute turret power with optional small-angle deadband ---
+                    double power = pPID * tx + dPID * derivativeTxLocal;
+
+                    // Deadband: ignore very small tx values to stop micro-jitter
+                    if (Math.abs(tx) < 0.15) power = 0;
+
+                    turretmotor.setPower(power);
+
+                    // Update last values
                     lastTx = tx;
                     lastTimeUpdated = System.nanoTime();
+
+                    doesiseeitfoundboi = true;
                     break;
                 }
             }
         }
+
         if (!doesiseeitfoundboi) {
             turretmotor.setPower(0);
             telemetry.addData("Limelight", "No data available");
@@ -342,8 +358,8 @@ public class realfarredmeet3 extends OpMode {
                 if (!follower.isBusy()) { // standing still at hub
 //                    currenttime=timer.seconds();
 //                    if(timer.seconds()-4>currenttime) {
-                        startFlicker();
-                        pathState = 401;
+                    startFlicker();
+                    pathState = 401;
                 }
                 break;
 
