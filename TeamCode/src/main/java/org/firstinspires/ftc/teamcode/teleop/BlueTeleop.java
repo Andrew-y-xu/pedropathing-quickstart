@@ -634,10 +634,10 @@ public class BlueTeleop extends OpMode {
             double turretPower = 0.0; // DEFAULT = stop
 
             if (gamepad1.left_trigger > 0.05) {
-                turretPower =  gamepad1.left_trigger * 0.35;
+                turretPower =  gamepad1.left_trigger * 0.65;
             }
             else if (gamepad1.right_trigger > 0.05) {
-                turretPower = -gamepad1.right_trigger * 0.35;
+                turretPower = -gamepad1.right_trigger * 0.65;
             }
 
             poopeemotorey.setPower(turretPower); // ALWAYS set
@@ -646,8 +646,8 @@ public class BlueTeleop extends OpMode {
             autoShoot.advancedMathematics(limelightTy);
             shooterPowerValue = autoShoot.getFlywheelPower();
             servoPositionValue = autoShoot.getAnglePosition();
-            testmotor.setPower(shooterPowerValue+0.0005*timer.seconds());
-            flywheelmotor2.setPower(shooterPowerValue+0.0005*timer.seconds());
+            testmotor.setPower(shooterPowerValue+0.0001*timer.seconds());
+            flywheelmotor2.setPower(shooterPowerValue+0.0001*timer.seconds());
             hoodservo.setPosition(servoPositionValue);
         }
 

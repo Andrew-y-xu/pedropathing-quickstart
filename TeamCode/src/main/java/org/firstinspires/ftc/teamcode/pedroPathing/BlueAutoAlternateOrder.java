@@ -79,8 +79,8 @@ public class BlueAutoAlternateOrder extends OpMode {
     private long flickerTimer = 0;
 
     // Timing (milliseconds) — easy to tune
-    long upTime = 300;
-    long downTime = 200;
+    long upTime = 500;
+    long downTime = 400;
 
     public void startFlicker() {
         if (flickerActive) return;
@@ -196,7 +196,7 @@ public class BlueAutoAlternateOrder extends OpMode {
                     .build();
 
             Path7 = follower.pathBuilder()
-                    .addPath(new BezierLine(new Pose(11.500, 35.000), new Pose(58.000, 105.00)))
+                    .addPath(new BezierLine(new Pose(11.500, 35.000), new Pose(54.000, 109.00)))
                     .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
                     .build();
         }

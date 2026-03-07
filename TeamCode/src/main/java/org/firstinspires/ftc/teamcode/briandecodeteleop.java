@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.teleop;
+package org.firstinspires.ftc.teamcode;
 
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.qualcomm.hardware.lynx.LynxModule;
@@ -33,6 +33,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import java.util.ArrayList;
 
 @TeleOp(name="Decode Teleop M1")
+@Disabled
 public class briandecodeteleop extends OpMode {
     DcMotor testmotor;
     DcMotor intakemotor;

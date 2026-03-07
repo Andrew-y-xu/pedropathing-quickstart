@@ -79,8 +79,8 @@ public class RedAutoAlternateOrder extends OpMode {
     private long flickerTimer = 0;
 
     // Timing (milliseconds) — easy to tune
-    long upTime = 300;
-    long downTime = 200;
+    long upTime = 500;
+    long downTime = 400;
 
     public void startFlicker() {
         if (flickerActive) return;
@@ -223,7 +223,7 @@ public class RedAutoAlternateOrder extends OpMode {
                             new BezierLine(
                                     new Pose(132.500, 35.000),
 
-                                    new Pose(86.000, 105.00)
+                                    new Pose(90.000, 109.00)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
                     .build();
@@ -360,8 +360,8 @@ public class RedAutoAlternateOrder extends OpMode {
 
             // ---- Go to hub (ends at shared point), then flick, then leave ----
             case 0:
-                flywheel.setPower(0.7);
-                flywheel2.setPower(0.7);
+                flywheel.setPower(0.55);
+                flywheel2.setPower(0.55);
 
                 follower.followPath(paths.Path1);
                 pathState = 1;
@@ -385,8 +385,6 @@ public class RedAutoAlternateOrder extends OpMode {
 
             case 101: // wait for flicker to finish, then go to Path2
                 if (flickerDone()) {
-                    flywheel.setPower(0.54);
-                    flywheel2.setPower(0.54);
 
                     intakeMode = IntakeMode.INTAKE;
                     follower.setMaxPower(0.75);

@@ -110,6 +110,7 @@ public class RedTeleop extends OpMode {
     private NormalizedColorSensor colorSensor3;
     private NormalizedColorSensor colorSensor2;
     private NormalizedColorSensor colorSensor1;
+    double additionalpower=0;
     private double colorPauseEnd1 = 0;
     private double colorPauseEnd2 = 0;
     private double colorPauseEnd3 = 0;
@@ -619,7 +620,6 @@ public class RedTeleop extends OpMode {
 //        }
 
         //CHangeing
-
         if (autoShoot.isShooterStopped() || !doesiseeitfoundboi) {
 
             if (gamepad2.left_bumper) {
@@ -634,10 +634,10 @@ public class RedTeleop extends OpMode {
             double turretPower = 0.0; // DEFAULT = stop
 
             if (gamepad1.left_trigger > 0.05) {
-                turretPower =  gamepad1.left_trigger * 0.35;
+                turretPower =  gamepad1.left_trigger * 0.65;
             }
             else if (gamepad1.right_trigger > 0.05) {
-                turretPower = -gamepad1.right_trigger * 0.35;
+                turretPower = -gamepad1.right_trigger * 0.65;
             }
 
             poopeemotorey.setPower(turretPower); // ALWAYS set
@@ -646,8 +646,8 @@ public class RedTeleop extends OpMode {
             autoShoot.advancedMathematics(limelightTy);
             shooterPowerValue = autoShoot.getFlywheelPower();
             servoPositionValue = autoShoot.getAnglePosition();
-            testmotor.setPower(shooterPowerValue+0.0005*timer.seconds());
-            flywheelmotor2.setPower(shooterPowerValue+0.0005*timer.seconds());
+            testmotor.setPower(shooterPowerValue+additionalpower);
+            flywheelmotor2.setPower(shooterPowerValue+0.0001*timer.seconds());
             hoodservo.setPosition(servoPositionValue);
         }
 

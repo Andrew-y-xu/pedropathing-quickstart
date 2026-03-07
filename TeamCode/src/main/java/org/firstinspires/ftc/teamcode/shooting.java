@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 //import com.arcrobotics.ftclib.controller.PIDController;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -8,6 +9,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 // For Limelight
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.limelightvision.LLResult;
+@Disabled
 @TeleOp(name="Tuning AutoShoot", group="Test")
 public class shooting extends OpMode {
     DcMotorEx testmotor;

@@ -43,7 +43,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @TeleOp(name="Tuning AutoShootTeleop_v3")
-//@Disabled
+@Disabled
 public class tuningAutoShootTeleop_v3 extends OpMode {
 
     DcMotor testmotor;

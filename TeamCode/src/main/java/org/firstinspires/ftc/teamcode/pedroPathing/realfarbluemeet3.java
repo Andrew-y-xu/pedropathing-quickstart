@@ -11,6 +11,8 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
 import java.util.List;
 @Autonomous(name="Far Blue")
 public class realfarbluemeet3 extends OpMode {
@@ -34,6 +36,8 @@ public class realfarbluemeet3 extends OpMode {
     double dPID = 0.003; //0.003 --> 0.001 (original value)
     double iPID = 0;
     Servo intake2;
+//    double currenttime;
+//    ElapsedTime timer=new ElapsedTime();
 
     // Intake pulse state
     private boolean intakePulseActive = false;
@@ -151,12 +155,13 @@ public class realfarbluemeet3 extends OpMode {
     public static class Paths {
         public PathChain Path1;
         public PathChain Path2;
+        public PathChain Path3;
         public Paths(Follower follower) {
             Path1 = follower.pathBuilder().addPath(
                             new BezierLine(
                                     new Pose(48.000, 8.000),
 
-                                    new Pose(-16.000, 8.000)
+                                    new Pose(8.000, 8.000)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
 
@@ -164,12 +169,21 @@ public class realfarbluemeet3 extends OpMode {
 
             Path2 = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(-16.000, 8.000),
+                                    new Pose(8.000, 8.000),
 
                                     new Pose(48.000, 8.000)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
 
+                    .build();
+            Path3 = follower.pathBuilder()
+                    .addPath(
+                            new BezierLine(
+                                    new Pose(48.000, 8.000),
+                                    new Pose(24.000, 8.000)
+                            )
+                    )
+                    .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
                     .build();
         }
     }
@@ -216,10 +230,13 @@ public class realfarbluemeet3 extends OpMode {
 
 
     }
+//    public void start(){
+//        timer.reset();
+//    }
     public void loop(){
         follower.update();
-        flywheel.setPower(0.67);
-        flywheel2.setPower(0.67);
+        flywheel.setPower(0.63);
+        flywheel2.setPower(0.63);
 
         updateFlicker();
         //updateIntakePulse();
@@ -319,16 +336,27 @@ public class realfarbluemeet3 extends OpMode {
             // ---- Arrived at hub again -> flick -> then Path5 ----
             case 4:
                 if (!follower.isBusy()) { // standing still at hub
-                    startFlicker();
-                    pathState = 401;
+//                    currenttime=timer.seconds();
+//                    if(timer.seconds()-4>currenttime) {
+                        startFlicker();
+                        pathState = 401;
                 }
                 break;
 
             case 401:
                 if (flickerDone()) {
-                    pathState = 9;
+                    follower.followPath(paths.Path3,true);
+                    pathState = 5;
                 }
                 break;
+            case 5:
+                if(!follower.isBusy()){
+                    flywheel.setPower(0);
+                    intake.setPower(0);
+                    flywheel2.setPower(0);
+                    intake2.setPosition(0.5);
+                    pathState=9;
+                }
 
             case 9:
                 if (!follower.isBusy()) {

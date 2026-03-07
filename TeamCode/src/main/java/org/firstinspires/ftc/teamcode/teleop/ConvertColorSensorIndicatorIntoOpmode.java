@@ -1,11 +1,12 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import org.firstinspires.ftc.teamcode.util.IndicatorLight;
-
+@Disabled
 @TeleOp(name = "ColorSensorIndicatorOpmode")
 public class ConvertColorSensorIndicatorIntoOpmode extends OpMode {
 
