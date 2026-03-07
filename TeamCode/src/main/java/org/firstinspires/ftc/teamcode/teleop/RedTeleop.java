@@ -69,9 +69,9 @@ public class RedTeleop extends OpMode {
 
 
     //pid values
-    double pPID = 0.011; //0.11 --> 0.04 (original value)
+    double pPID = 0.015; //0.11 --> 0.04 (original value)
     double dPID = 0.003; //0.003 --> 0.001 (original value)
-    double iPID = 0.000001;
+    double iPID = 0;
     double integralPID = 0;
     double lastTx = 0;
     double derivativeTx = 0;

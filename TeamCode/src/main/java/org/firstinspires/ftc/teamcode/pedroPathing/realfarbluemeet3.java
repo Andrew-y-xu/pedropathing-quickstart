@@ -30,8 +30,9 @@ public class realfarbluemeet3 extends OpMode {
     DcMotor turretmotor;
     double lastTx = 0;
     double lastTimeUpdated = 0;
-    double pPID = 0.13; //0.11 --> 0.04 (original value)
+    double pPID = 0.015; //0.11 --> 0.04 (original value)
     double dPID = 0.003; //0.003 --> 0.001 (original value)
+    double iPID = 0;
     Servo intake2;
 
     // Intake pulse state
