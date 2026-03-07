@@ -75,8 +75,8 @@ public class realfarredmeet3 extends OpMode {
     private long flickerTimer = 0;
 
     // Timing (milliseconds) — easy to tune
-    long upTime = 900;
-    long downTime = 2000;
+    long upTime = 300;
+    long downTime = 200;
 
     public void startFlicker() {
         if (flickerActive) return;

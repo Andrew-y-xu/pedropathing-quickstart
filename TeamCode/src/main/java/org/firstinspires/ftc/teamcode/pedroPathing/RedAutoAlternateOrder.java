@@ -39,6 +39,7 @@ public class RedAutoAlternateOrder extends OpMode {
     double lastTimeUpdated = 0;
     double pPID = 0.011; //0.11 --> 0.04 (original value)
     double dPID = 0.003; //0.003 --> 0.001 (original value)
+    double iPID = 0.000001;
     Servo intake2;
 
     // Intake pulse state
@@ -78,8 +79,8 @@ public class RedAutoAlternateOrder extends OpMode {
     private long flickerTimer = 0;
 
     // Timing (milliseconds) — easy to tune
-    long upTime = 900;
-    long downTime = 800;
+    long upTime = 300;
+    long downTime = 200;
 
     public void startFlicker() {
         if (flickerActive) return;
@@ -313,25 +314,43 @@ public class RedAutoAlternateOrder extends OpMode {
         }
         LLResult resultsofpooe = limelight.getLatestResult();
         boolean doesiseeitfoundboi = false;
-
+        double limelight_tx = 0;
+        double limelightTy = 0;
+        double dt = 0;
+        double iPID = 0;
+        double integralPID = 0;
         if (resultsofpooe != null && resultsofpooe.isValid()) {
             List<LLResultTypes.FiducialResult> fiducialResults2 = resultsofpooe.getFiducialResults();
             for (LLResultTypes.FiducialResult fr : fiducialResults2) {
-                double tx = fr.getTargetXDegrees();
-                if(fr.getFiducialId() ==24) {
-                    derivativeTx = 1000000000.0*(tx-lastTx)/(System.nanoTime()-lastTimeUpdated);
-                    turretmotor.setPower(pPID * tx + dPID * derivativeTx); //TxValue
+
+                telemetry.addData("FiducialID", fr.getFiducialId());
+                //--- For Auto Aim ---//
+//                Double TxValue = resultsofpooe.getTx();
+                //--- Get LimeLight Tx
+                limelight_tx = fr.getTargetXDegrees();
+                limelightTy = fr.getTargetYDegrees();
+                //--- If Red Target
+                if (fr.getFiducialId() == 24) {
+                    dt = System.nanoTime() - lastTimeUpdated;
+                    derivativeTx = 1000000000.0 * (limelight_tx - lastTx) / (dt);
+                    integralPID += limelight_tx * dt / 1000000000;
+                    turretmotor.setPower(pPID * limelight_tx + dPID * derivativeTx + iPID * integralPID); //TxValue
                     doesiseeitfoundboi = true;
-                    lastTx = tx;
+                    lastTx = limelight_tx;
                     lastTimeUpdated = System.nanoTime();
-                    break;
                 }
             }
-            telemetry.addData("Limelight","Data available");
         }
         if (!doesiseeitfoundboi) {
             turretmotor.setPower(0);
             telemetry.addData("Limelight", "No data available");
+        } else {
+            telemetry.addData("Limelight","Data available");
+        }
+        try {
+            autonomousPathUpdate();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
         telemetry.update();
     }

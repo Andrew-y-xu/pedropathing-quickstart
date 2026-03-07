@@ -75,7 +75,7 @@ public class realfarbluemeet3 extends OpMode {
     private long flickerTimer = 0;
 
     // Timing (milliseconds) — easy to tune
-    long upTime = 900;
+    long upTime = 300;
     long downTime = 2000;
 
     public void startFlicker() {
