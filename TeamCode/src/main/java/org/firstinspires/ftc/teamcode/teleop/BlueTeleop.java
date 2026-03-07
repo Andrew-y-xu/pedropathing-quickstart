@@ -71,7 +71,8 @@ public class BlueTeleop extends OpMode {
 
     double pPID = 0.011; //0.11 --> 0.04 (original value)
     double dPID = 0.003; //0.003 --> 0.001 (original value)
-    double iPID = 0;
+    double iPID = 0.000001;
+    double integralPID = 0;
     double lastTx = 0;
     double derivativeTx = 0;
     double lastTimeUpdated = 0;
@@ -521,6 +522,7 @@ public class BlueTeleop extends OpMode {
 
         LLResult resultsofpooe = lookylookyseesee.getLatestResult();
         boolean doesiseeitfoundboi = false;
+        double dt = 0;
 
         if (resultsofpooe != null && resultsofpooe.isValid()) {
             List<LLResultTypes.FiducialResult> fiducialResults2 = resultsofpooe.getFiducialResults();
@@ -534,11 +536,15 @@ public class BlueTeleop extends OpMode {
                 limelightTy = fr.getTargetYDegrees();
                 //--- If Red Target
                 if (fr.getFiducialId() == 20) {
-                    derivativeTx = 1000000000.0 * (limelight_tx - lastTx) / (System.nanoTime() - lastTimeUpdated);
-                    poopeemotorey.setPower(pPID * limelight_tx + dPID * derivativeTx); //TxValue
+                    dt = System.nanoTime() - lastTimeUpdated;
+                    derivativeTx = 1000000000.0 * (limelight_tx - lastTx) / (dt);
+                    integralPID += limelight_tx * dt/1000000000;
+                    poopeemotorey.setPower(pPID * limelight_tx + dPID * derivativeTx + iPID * integralPID); //TxValue
                     doesiseeitfoundboi = true;
                     lastTx = limelight_tx;
                     lastTimeUpdated = System.nanoTime();
+
+
 
                     //--- Get LimeLight Ty
                     autoShoot.advancedMathematics(limelightTy);
