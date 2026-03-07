@@ -101,7 +101,7 @@ public class BlueTeleop extends OpMode {
     private ElapsedTime debounceTimer = new ElapsedTime();
     private static final String SENSOR3_NAME = "color3";
     private static final String SENSOR2_NAME = "color2";
-    //private static final String SENSOR1_NAME = "color1";
+    private static final String SENSOR1_NAME = "color1";
 
     private static final String INDICATOR3_NAME = "indicator3";
     private static final String INDICATOR2_NAME = "indicator2";
@@ -109,7 +109,7 @@ public class BlueTeleop extends OpMode {
 
     private NormalizedColorSensor colorSensor3;
     private NormalizedColorSensor colorSensor2;
-    private DetectableColor colorSensor1;
+    private NormalizedColorSensor colorSensor1;
     private double colorPauseEnd1 = 0;
     private double colorPauseEnd2 = 0;
     private double colorPauseEnd3 = 0;
@@ -180,7 +180,7 @@ public class BlueTeleop extends OpMode {
         intakemotor.setDirection(DcMotorSimple.Direction.REVERSE);
         colorSensor3 = hardwareMap.get(NormalizedColorSensor.class, SENSOR3_NAME);
         colorSensor2 = hardwareMap.get(NormalizedColorSensor.class, SENSOR2_NAME);
-        //colorSensor1 = hardwareMap.get(DetectableColor.class, SENSOR1_NAME);
+        colorSensor1 = hardwareMap.get(NormalizedColorSensor.class, SENSOR1_NAME);
 
         light3 = new IndicatorLight(hardwareMap, INDICATOR3_NAME);
         light2 = new IndicatorLight(hardwareMap, INDICATOR2_NAME);
@@ -652,76 +652,76 @@ public class BlueTeleop extends OpMode {
 //        }
 
         //Change
-//        String detected3 = "unknown";
-//        String detected2 = "unknown";
-//        String detected1 = "unknown";
-//
-//        if (!pauseColor3 || timer.milliseconds() > colorPauseEnd3) {
-//            pauseColor3 = false;
-//            detected3 = detectColor(colorSensor3);
-//        }
-//
-//        if (!pauseColor2 || timer.milliseconds() > colorPauseEnd2) {
-//            pauseColor2 = false;
-//            detected2 = detectColor(colorSensor2);
-//        }
-//
-//        if(!pauseColor1 || timer.milliseconds() > colorPauseEnd1){
-//            pauseColor1 = false;
-//            detected1 = isColorDetected(colorSensor1);
-//        }
-//
-//        /* ADD THIS PART BACK */
-//
-//// Sensor 3 locking
-//        if (!pauseColor3) {
-//            if (detected3.equals("green") || detected3.equals("purple")) {
-//                lastLockedColor3 = detected3;
-//            }
-//        }
-//
-//// Sensor 2 locking
-//        if (!pauseColor2) {
-//            if (detected2.equals("green") || detected2.equals("purple")) {
-//                lastLockedColor2 = detected2;
-//            }
-//        }
-//
-//        if(!pauseColor1){
-//            if(detected1.equals("green") || detected1.equals("purple")){
-//                lastLockedColor1 = detected1;
-//            }
-//        }
-//        if (pauseColor3) {
-//            light3.white();
-//        }
-//        else if (lastLockedColor3.equals("green")) {
-//            light3.green();
-//        }
-//        else if (lastLockedColor3.equals("purple")) {
-//            light3.violet();
-//        }
-//        if (pauseColor2) {
-//            light2.white();
-//        }
-//        else if (lastLockedColor2.equals("green")) {
-//            light2.green();
-//        }
-//        else if (lastLockedColor2.equals("purple")) {
-//            light2.violet();
-//        }
-//        if(pauseColor1){
-//            light1.white();
-//        }
-//        else if(lastLockedColor1.equals("green")){
-//            light1.green();
-//        }
-//        else if(lastLockedColor1.equals("purple")){
-//            light1.violet();
-//        }
-        //telemetry.addData("Sensor3 Detected", detected3);
+        String detected3 = "unknown";
+        String detected2 = "unknown";
+        String detected1 = "unknown";
+
+        if (!pauseColor3 || timer.milliseconds() > colorPauseEnd3) {
+            pauseColor3 = false;
+            detected3 = detectColor(colorSensor3);
+        }
+
+        if (!pauseColor2 || timer.milliseconds() > colorPauseEnd2) {
+            pauseColor2 = false;
+            detected2 = detectColor(colorSensor2);
+        }
+
+        if(!pauseColor1 || timer.milliseconds() > colorPauseEnd1){
+            pauseColor1 = false;
+            detected1 = detectColor(colorSensor1);
+        }
+
+        /* ADD THIS PART BACK */
+
+// Sensor 3 locking
+        if (!pauseColor3) {
+            if (detected3.equals("green") || detected3.equals("purple")) {
+                lastLockedColor3 = detected3;
+            }
+        }
+
+// Sensor 2 locking
+        if (!pauseColor2) {
+            if (detected2.equals("green") || detected2.equals("purple")) {
+                lastLockedColor2 = detected2;
+            }
+        }
+
+        if(!pauseColor1){
+            if(detected1.equals("green") || detected1.equals("purple")){
+                lastLockedColor1 = detected1;
+            }
+        }
+        if (pauseColor3) {
+            light3.white();
+        }
+        else if (lastLockedColor3.equals("green")) {
+            light3.green();
+        }
+        else if (lastLockedColor3.equals("purple")) {
+            light3.violet();
+        }
+        if (pauseColor2) {
+            light2.white();
+        }
+        else if (lastLockedColor2.equals("green")) {
+            light2.green();
+        }
+        else if (lastLockedColor2.equals("purple")) {
+            light2.violet();
+        }
+        if(pauseColor1){
+            light1.white();
+        }
+        else if(lastLockedColor1.equals("green")){
+            light1.green();
+        }
+        else if(lastLockedColor1.equals("purple")){
+            light1.violet();
+        }
+        telemetry.addData("Sensor3 Detected", detected3);
         telemetry.addData("Sensor3 Locked", lastLockedColor3);
-        //telemetry.addData("Sensor2 Detected", detected2);
+        telemetry.addData("Sensor2 Detected", detected2);
         telemetry.addData("Sensor2 Locked", lastLockedColor2);
         telemetry.addData("----- Shooter Data -----", null);
         telemetry.addData("AutoShoot: ", autoShootMessage);

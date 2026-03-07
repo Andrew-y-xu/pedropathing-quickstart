@@ -1,58 +1,35 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
-import com.qualcomm.hardware.lynx.LynxModule;
-import com.qualcomm.robotcore.hardware.AnalogInput;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
-import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
+import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
-import com.qualcomm.hardware.limelightvision.LLStatus;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-
-import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
 import org.firstinspires.ftc.teamcode.hardware.AutoShooter;
 
 
-import com.qualcomm.hardware.limelightvision.LLResult;
-import com.qualcomm.hardware.limelightvision.LLResultTypes;
-import com.qualcomm.hardware.limelightvision.Limelight3A;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.firstinspires.ftc.teamcode.hardware.AutoShooter;
-import java.util.List;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-
-import java.util.ArrayList;
+import org.firstinspires.ftc.teamcode.util.DetectableColor;
+import org.firstinspires.ftc.teamcode.util.IndicatorLight;
 
 @TeleOp(name="Red Teleop")
 public class RedTeleop extends OpMode {
 
     DcMotor testmotor;
+    DcMotor flywheelmotor2;
     DcMotor intakemotor;
 
     DcMotorEx motor_frontLeft;
@@ -64,6 +41,11 @@ public class RedTeleop extends OpMode {
     Servo lift3servo;
     Servo intake2servo;
     Servo hoodservo; //--- Added for AutoShoot
+    private DetectableColor pin0Color;
+    private DetectableColor pin1Color;
+    private DigitalChannel digitalPin0;
+    private DigitalChannel digitalPin1;
+
 
 //    Servo aimservo;
 //
@@ -76,6 +58,8 @@ public class RedTeleop extends OpMode {
 
     private boolean cycleRunning = false;
     private double cycleStartTime = 0;
+    private boolean fullCycleRunning = false;
+    private double fullCycleStartTime = 0;
     DcMotor poopeemotorey;
     private Limelight3A lookylookyseesee;
     ElapsedTime timer = new ElapsedTime();
@@ -84,10 +68,11 @@ public class RedTeleop extends OpMode {
     private boolean ltWasPressed = false;
 
 
-
-    double pPID = 0.13; //0.11 --> 0.04 (original value)
+    //pid values
+    double pPID = 0.011; //0.11 --> 0.04 (original value)
     double dPID = 0.003; //0.003 --> 0.001 (original value)
-    double iPID = 0;
+    double iPID = 0.000001;
+    double integralPID = 0;
     double lastTx = 0;
     double derivativeTx = 0;
     double lastTimeUpdated = 0;
@@ -114,10 +99,37 @@ public class RedTeleop extends OpMode {
     private double value = 0;
     public double speed = 1.0;
     private ElapsedTime debounceTimer = new ElapsedTime();
+    private static final String SENSOR3_NAME = "color3";
+    private static final String SENSOR2_NAME = "color2";
+    private static final String SENSOR1_NAME = "color1";
+
+    private static final String INDICATOR3_NAME = "indicator3";
+    private static final String INDICATOR2_NAME = "indicator2";
+    private static final String INDICATOR1_NAME = "indicator1";
+
+    private NormalizedColorSensor colorSensor3;
+    private NormalizedColorSensor colorSensor2;
+    private NormalizedColorSensor colorSensor1;
+    private double colorPauseEnd1 = 0;
+    private double colorPauseEnd2 = 0;
+    private double colorPauseEnd3 = 0;
+    private boolean pauseColor1 = false;
+    private boolean pauseColor2 = false;
+    private boolean pauseColor3 = false;
+    private IndicatorLight light3;
+    private IndicatorLight light2;
+    private IndicatorLight light1;
+
+    // Store last locked colors independently
+    private String lastLockedColor3 = "unknown";
+    private String lastLockedColor2 = "unknown";
+    private String lastLockedColor1 = "unknown";
 
     @Override
     public void init() {
         testmotor = hardwareMap.dcMotor.get("testemotor");
+        flywheelmotor2 = hardwareMap.dcMotor.get("flywheelmotor2");
+
         motor_frontLeft = hardwareMap.get(DcMotorEx.class, "lf");
         motor_frontRight = hardwareMap.get(DcMotorEx.class, "rf");
         motor_backLeft = hardwareMap.get(DcMotorEx.class, "lr");
@@ -163,8 +175,16 @@ public class RedTeleop extends OpMode {
 //        convey = hardwareMap.get(Servo.class, "convey");
 
         testmotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        intakemotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        flywheelmotor2.setDirection(DcMotorSimple.Direction.FORWARD);
 
+        intakemotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        colorSensor3 = hardwareMap.get(NormalizedColorSensor.class, SENSOR3_NAME);
+        colorSensor2 = hardwareMap.get(NormalizedColorSensor.class, SENSOR2_NAME);
+        colorSensor1 = hardwareMap.get(NormalizedColorSensor.class, SENSOR1_NAME);
+
+        light3 = new IndicatorLight(hardwareMap, INDICATOR3_NAME);
+        light2 = new IndicatorLight(hardwareMap, INDICATOR2_NAME);
+        light1 = new IndicatorLight(hardwareMap, INDICATOR1_NAME);
         liftservo.setPosition(0.05); //0.05
         lift2servo.setPosition(0.98); //0.9
         lift3servo.setPosition(0.12);
@@ -315,6 +335,44 @@ public class RedTeleop extends OpMode {
 //            }
 //        }
 
+        /* Triple flicker action */
+        if (gamepad2.dpad_up && !fullCycleRunning) { fullCycleRunning = true; fullCycleStartTime = timer.milliseconds(); }
+
+        if (fullCycleRunning) {
+            double t = timer.milliseconds() - fullCycleStartTime;
+
+            /* Right */
+            if (t < 300) lift2servo.setPosition(0.47); //0.30
+            else if (t < 500) {
+                lift2servo.setPosition(0.98);
+                lastLockedColor2 = "unknown";
+                light2.white();
+                pauseColor2 = true;
+                colorPauseEnd2 = timer.milliseconds() + 2500;
+            }
+            /* Left */
+            else if (t < 800) liftservo.setPosition(0.58); //0.55
+            else if (t < 1000) {
+                liftservo.setPosition(0.05);//0.05
+                //lastLockedColor1 = "unknown";
+                light1.white();
+                //pauseColor1 = true;
+                colorPauseEnd1 = timer.milliseconds() + 2500;
+            }
+            /* Back */
+            else if (t < 1300) lift3servo.setPosition(0.63);
+            else if (t < 1500) {
+                lift3servo.setPosition(0.12);
+                lastLockedColor3 = "unknown";
+                light3.white();
+                pauseColor3 = true;
+                colorPauseEnd3 = timer.milliseconds() + 2500;
+            }
+            else { fullCycleRunning = false; }
+        }
+
+
+
         if (gamepad2.dpad_left  && !cycleRunning) { cycleRunning = true; cycleMode = 1; cycleStartTime = timer.milliseconds(); }
         if (gamepad2.dpad_right && !cycleRunning) { cycleRunning = true; cycleMode = 2; cycleStartTime = timer.milliseconds(); }
         if (gamepad2.dpad_down && !cycleRunning) { cycleRunning = true; cycleMode = 3; cycleStartTime = timer.milliseconds(); }
@@ -329,17 +387,35 @@ public class RedTeleop extends OpMode {
 
             if (cycleMode == 1) {
                 if (t < 300) liftservo.setPosition(0.58); //0.55
-                else if (t < 500) liftservo.setPosition(0.05); //0.05
+                else if (t < 500) {
+                    liftservo.setPosition(0.05);//0.05
+                    //lastLockedColor1 = "unknown";
+                    light1.white();
+                    //pauseColor1 = true;
+                    colorPauseEnd1 = timer.milliseconds() + 2500;
+                }
                 else { cycleRunning = false; cycleMode = 0; }
             }
             else if (cycleMode == 2) {
                 if (t < 300) lift2servo.setPosition(0.47); //0.30
-                else if (t < 500) lift2servo.setPosition(0.98);  //0.9
+                else if (t < 500) {
+                    lift2servo.setPosition(0.98);
+                    lastLockedColor2 = "unknown";
+                    light2.white();
+                    pauseColor2 = true;
+                    colorPauseEnd2 = timer.milliseconds() + 2500;
+                }
                 else { cycleRunning = false; cycleMode = 0; }
             }
             else if (cycleMode == 3) {
                 if (t < 300) lift3servo.setPosition(0.63);
-                else if (t < 500) lift3servo.setPosition(0.12);
+                else if (t < 500) {
+                    lift3servo.setPosition(0.12);
+                    lastLockedColor3 = "unknown";
+                    light3.white();
+                    pauseColor3 = true;
+                    colorPauseEnd3 = timer.milliseconds() + 2500;
+                }
                 else { cycleRunning = false; cycleMode = 0; }
             }
         }
@@ -363,6 +439,7 @@ public class RedTeleop extends OpMode {
             intakemotor.setPower(-1.0);
             intake2servo.setPosition(0.0);
         }
+
 
 
 ///***************************/
@@ -445,6 +522,7 @@ public class RedTeleop extends OpMode {
 
         LLResult resultsofpooe = lookylookyseesee.getLatestResult();
         boolean doesiseeitfoundboi = false;
+        double dt = 0;
 
         if (resultsofpooe != null && resultsofpooe.isValid()) {
             List<LLResultTypes.FiducialResult> fiducialResults2 = resultsofpooe.getFiducialResults();
@@ -457,12 +535,27 @@ public class RedTeleop extends OpMode {
                 limelight_tx = fr.getTargetXDegrees();
                 limelightTy = fr.getTargetYDegrees();
                 //--- If Red Target
-                if (fr.getFiducialId() ==20) {
-                    derivativeTx = 1000000000.0 * (limelight_tx - lastTx) / (System.nanoTime() - lastTimeUpdated);
-                    poopeemotorey.setPower(pPID * limelight_tx + dPID * derivativeTx); //TxValue
+                if (fr.getFiducialId() == 24) {
+                    dt = System.nanoTime() - lastTimeUpdated;
+                    derivativeTx = 1000000000.0 * (limelight_tx - lastTx) / (dt);
+                    integralPID += limelight_tx * dt/1000000000;
+                    poopeemotorey.setPower(pPID * limelight_tx + dPID * derivativeTx + iPID * integralPID); //TxValue
                     doesiseeitfoundboi = true;
                     lastTx = limelight_tx;
                     lastTimeUpdated = System.nanoTime();
+
+
+
+                    //--- Get LimeLight Ty
+                    autoShoot.advancedMathematics(limelightTy);
+                    //--- Shooter FlyWheel
+                    shooterPowerValue = autoShoot.getFlywheelPower();  //--- Update Shooter FlyWheel math here, or use new shooter class for object
+                    testmotor.setPower(shooterPowerValue);
+                    flywheelmotor2.setPower(shooterPowerValue);
+                    //--- Shooter Angle
+                    servoPositionValue = autoShoot.getAnglePosition();  //--- Update Shooter Angle math here, or use new shooter class for object
+                    hoodservo.setPosition(servoPositionValue);
+                    break;
                     //break;
                     //}
 
@@ -524,36 +617,112 @@ public class RedTeleop extends OpMode {
 //        } else {
 //            convey.setPosition(0.5);
 //        }
-        if (autoShoot.isShooterStopped() || !doesiseeitfoundboi) {
 
-            if (gamepad2.left_bumper) {
-                testmotor.setPower(0.62);
-            }
-            if (gamepad2.right_bumper) {
-                testmotor.setPower(0.3);
-            }
+        //CHangeing
+//
+//        if (autoShoot.isShooterStopped() || !doesiseeitfoundboi) {
+//
+//            if (gamepad2.left_bumper) {
+//                testmotor.setPower(0.62);
+//                flywheelmotor2.setPower(0.62);
+//            }
+//            if (gamepad2.right_bumper) {
+//                testmotor.setPower(0.3);
+//                flywheelmotor2.setPower(0.3);
+//            }
+//
+//            double turretPower = 0.0; // DEFAULT = stop
+//
+//            if (gamepad1.left_trigger > 0.05) {
+//                turretPower =  gamepad1.left_trigger * 0.35;
+//            }
+//            else if (gamepad1.right_trigger > 0.05) {
+//                turretPower = -gamepad1.right_trigger * 0.35;
+//            }
+//
+//            poopeemotorey.setPower(turretPower); // ALWAYS set
+//
+//        } else {
+//            autoShoot.advancedMathematics(limelightTy);
+//            shooterPowerValue = autoShoot.getFlywheelPower();
+//            servoPositionValue = autoShoot.getAnglePosition();
+//            testmotor.setPower(shooterPowerValue);
+//            flywheelmotor2.setPower(shooterPowerValue);
+//            hoodservo.setPosition(servoPositionValue);
+//        }
 
-            double turretPower = 0.0; // DEFAULT = stop
+        //Change
+        String detected3 = "unknown";
+        String detected2 = "unknown";
+        String detected1 = "unknown";
 
-            if (gamepad1.left_trigger > 0.05) {
-                turretPower =  gamepad1.left_trigger * 0.35;
-            }
-            else if (gamepad1.right_trigger > 0.05) {
-                turretPower = -gamepad1.right_trigger * 0.35;
-            }
-
-            poopeemotorey.setPower(turretPower); // ALWAYS set
-
-        } else {
-            autoShoot.advancedMathematics(limelightTy);
-            shooterPowerValue = autoShoot.getFlywheelPower();
-            servoPositionValue = autoShoot.getAnglePosition();
-            testmotor.setPower(shooterPowerValue);
-            hoodservo.setPosition(servoPositionValue);
+        if (!pauseColor3 || timer.milliseconds() > colorPauseEnd3) {
+            pauseColor3 = false;
+            detected3 = detectColor(colorSensor3);
         }
 
+        if (!pauseColor2 || timer.milliseconds() > colorPauseEnd2) {
+            pauseColor2 = false;
+            detected2 = detectColor(colorSensor2);
+        }
 
+        if(!pauseColor1 || timer.milliseconds() > colorPauseEnd1){
+            pauseColor1 = false;
+            detected1 = detectColor(colorSensor1);
+        }
 
+        /* ADD THIS PART BACK */
+
+// Sensor 3 locking
+        if (!pauseColor3) {
+            if (detected3.equals("green") || detected3.equals("purple")) {
+                lastLockedColor3 = detected3;
+            }
+        }
+
+// Sensor 2 locking
+        if (!pauseColor2) {
+            if (detected2.equals("green") || detected2.equals("purple")) {
+                lastLockedColor2 = detected2;
+            }
+        }
+
+        if(!pauseColor1){
+            if(detected1.equals("green") || detected1.equals("purple")){
+                lastLockedColor1 = detected1;
+            }
+        }
+        if (pauseColor3) {
+            light3.white();
+        }
+        else if (lastLockedColor3.equals("green")) {
+            light3.green();
+        }
+        else if (lastLockedColor3.equals("purple")) {
+            light3.violet();
+        }
+        if (pauseColor2) {
+            light2.white();
+        }
+        else if (lastLockedColor2.equals("green")) {
+            light2.green();
+        }
+        else if (lastLockedColor2.equals("purple")) {
+            light2.violet();
+        }
+        if(pauseColor1){
+            light1.white();
+        }
+        else if(lastLockedColor1.equals("green")){
+            light1.green();
+        }
+        else if(lastLockedColor1.equals("purple")){
+            light1.violet();
+        }
+        telemetry.addData("Sensor3 Detected", detected3);
+        telemetry.addData("Sensor3 Locked", lastLockedColor3);
+        telemetry.addData("Sensor2 Detected", detected2);
+        telemetry.addData("Sensor2 Locked", lastLockedColor2);
         telemetry.addData("----- Shooter Data -----", null);
         telemetry.addData("AutoShoot: ", autoShootMessage);
         telemetry.addData("AutoShoot Stopped: ", autoShoot.isShooterStopped());
@@ -565,6 +734,7 @@ public class RedTeleop extends OpMode {
 
         telemetry.addData("----- Limelight Data -----", null);
         telemetry.addData("Limelight: ", limelightMessage);
+        telemetry.addData("Limelight Time: ", (System.nanoTime() - lastTimeUpdated)/1000000.0);
         telemetry.addData("LimeLight(ty): ", limelightTy);
         telemetry.addData("LimeLight(tx): ", limelight_tx);
         telemetry.update();
@@ -572,6 +742,60 @@ public class RedTeleop extends OpMode {
         telemetry.addData( "Timer (s)", timer.seconds());
         telemetry.addData("Shooter Power (0-1)", value);
         telemetry.update();
+    }
+    private String detectColor(NormalizedColorSensor sensor) {
+        NormalizedRGBA rgba = sensor.getNormalizedColors();
+
+        double r = clamp01(rgba.red);
+        double g = clamp01(rgba.green);
+        double b = clamp01(rgba.blue);
+
+        double intensity = r + g + b;
+        boolean brightEnough = intensity > 0.06;
+        boolean notBlownOut = intensity < 2.7;
+
+        double sum = Math.max(1e-6, intensity);
+        double rn = r / sum;
+        double gn = g / sum;
+        double bn = b / sum;
+
+        boolean isGreen = brightEnough && notBlownOut &&
+                gn > 0.45 &&
+                gn > rn + 0.05 &&
+                gn > bn + 0.05;
+
+        boolean isPurple = brightEnough && notBlownOut &&
+                rn > 0.20 &&
+                bn > 0.40 &&
+                gn < 0.35 &&
+                Math.abs(rn - bn) < 0.30;
+
+        if (isGreen) return "green";
+        if (isPurple) return "purple";
+        return "unknown"; // does NOT reset lock
+    }
+
+    public String isColorDetected(DetectableColor color) {
+        requireDigital();
+        if (color == pin0Color && digitalPin0.getState()) {
+            return "purple";
+        }
+        if (color == pin1Color && digitalPin1.getState()) {
+            return "green";
+        }
+        return "unknown";
+    }
+    private void requireDigital() {
+        if (digitalPin0 == null || digitalPin1 == null) {
+            throw new IllegalStateException(
+                    "ColorDetector was not created with "
+                            + "forDigitalRead(). Cannot read digital "
+                            + "pins."
+            );
+        }
+    }
+    private double clamp01(float v) {
+        return Math.max(0.0, Math.min(1.0, v));
     }
     private boolean ifPressed(boolean button) {
         boolean output = false;
