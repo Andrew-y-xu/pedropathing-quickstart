@@ -354,9 +354,9 @@ public class RedTeleop extends OpMode {
             else if (t < 800) liftservo.setPosition(0.58); //0.55
             else if (t < 1000) {
                 liftservo.setPosition(0.05);//0.05
-                //lastLockedColor1 = "unknown";
+                lastLockedColor1 = "unknown";
                 light1.white();
-                //pauseColor1 = true;
+                pauseColor1 = true;
                 colorPauseEnd1 = timer.milliseconds() + 2500;
             }
             /* Back */
@@ -389,9 +389,9 @@ public class RedTeleop extends OpMode {
                 if (t < 300) liftservo.setPosition(0.58); //0.55
                 else if (t < 500) {
                     liftservo.setPosition(0.05);//0.05
-                    //lastLockedColor1 = "unknown";
+                    lastLockedColor1 = "unknown";
                     light1.white();
-                    //pauseColor1 = true;
+                    pauseColor1 = true;
                     colorPauseEnd1 = timer.milliseconds() + 2500;
                 }
                 else { cycleRunning = false; cycleMode = 0; }
@@ -547,14 +547,14 @@ public class RedTeleop extends OpMode {
 
 
                     //--- Get LimeLight Ty
-                    autoShoot.advancedMathematics(limelightTy);
-                    //--- Shooter FlyWheel
-                    shooterPowerValue = autoShoot.getFlywheelPower();  //--- Update Shooter FlyWheel math here, or use new shooter class for object
-                    testmotor.setPower(shooterPowerValue);
-                    flywheelmotor2.setPower(shooterPowerValue);
-                    //--- Shooter Angle
-                    servoPositionValue = autoShoot.getAnglePosition();  //--- Update Shooter Angle math here, or use new shooter class for object
-                    hoodservo.setPosition(servoPositionValue);
+//                    autoShoot.advancedMathematics(limelightTy);
+//                    //--- Shooter FlyWheel
+//                    shooterPowerValue = autoShoot.getFlywheelPower();  //--- Update Shooter FlyWheel math here, or use new shooter class for object
+//                    testmotor.setPower(shooterPowerValue);
+//                    flywheelmotor2.setPower(shooterPowerValue);
+//                    //--- Shooter Angle
+//                    servoPositionValue = autoShoot.getAnglePosition();  //--- Update Shooter Angle math here, or use new shooter class for object
+//                    hoodservo.setPosition(servoPositionValue);
                     break;
                     //break;
                     //}
@@ -619,37 +619,37 @@ public class RedTeleop extends OpMode {
 //        }
 
         //CHangeing
-//
-//        if (autoShoot.isShooterStopped() || !doesiseeitfoundboi) {
-//
-//            if (gamepad2.left_bumper) {
-//                testmotor.setPower(0.62);
-//                flywheelmotor2.setPower(0.62);
-//            }
-//            if (gamepad2.right_bumper) {
-//                testmotor.setPower(0.3);
-//                flywheelmotor2.setPower(0.3);
-//            }
-//
-//            double turretPower = 0.0; // DEFAULT = stop
-//
-//            if (gamepad1.left_trigger > 0.05) {
-//                turretPower =  gamepad1.left_trigger * 0.35;
-//            }
-//            else if (gamepad1.right_trigger > 0.05) {
-//                turretPower = -gamepad1.right_trigger * 0.35;
-//            }
-//
-//            poopeemotorey.setPower(turretPower); // ALWAYS set
-//
-//        } else {
-//            autoShoot.advancedMathematics(limelightTy);
-//            shooterPowerValue = autoShoot.getFlywheelPower();
-//            servoPositionValue = autoShoot.getAnglePosition();
-//            testmotor.setPower(shooterPowerValue);
-//            flywheelmotor2.setPower(shooterPowerValue);
-//            hoodservo.setPosition(servoPositionValue);
-//        }
+
+        if (autoShoot.isShooterStopped() || !doesiseeitfoundboi) {
+
+            if (gamepad2.left_bumper) {
+                testmotor.setPower(0.62);
+                flywheelmotor2.setPower(0.62);
+            }
+            if (gamepad2.right_bumper) {
+                testmotor.setPower(0.3);
+                flywheelmotor2.setPower(0.3);
+            }
+
+            double turretPower = 0.0; // DEFAULT = stop
+
+            if (gamepad1.left_trigger > 0.05) {
+                turretPower =  gamepad1.left_trigger * 0.35;
+            }
+            else if (gamepad1.right_trigger > 0.05) {
+                turretPower = -gamepad1.right_trigger * 0.35;
+            }
+
+            poopeemotorey.setPower(turretPower); // ALWAYS set
+
+        } else {
+            autoShoot.advancedMathematics(limelightTy);
+            shooterPowerValue = autoShoot.getFlywheelPower();
+            servoPositionValue = autoShoot.getAnglePosition();
+            testmotor.setPower(shooterPowerValue+0.0005*timer.seconds());
+            flywheelmotor2.setPower(shooterPowerValue+0.0005*timer.seconds());
+            hoodservo.setPosition(servoPositionValue);
+        }
 
         //Change
         String detected3 = "unknown";

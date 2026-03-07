@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.I2cDeviceSynchSimple;
 
-@TeleOp
+
 public /**
  * Helper class for configuring the Brushland Labs Color Rangefinder.
  * Online documentation: <a href="https://docs.brushlandlabs.com">...</a>

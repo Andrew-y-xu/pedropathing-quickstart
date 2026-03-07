@@ -360,8 +360,8 @@ public class RedAutoAlternateOrder extends OpMode {
 
             // ---- Go to hub (ends at shared point), then flick, then leave ----
             case 0:
-                flywheel.setPower(0.63);
-                flywheel2.setPower(0.63);
+                flywheel.setPower(0.7);
+                flywheel2.setPower(0.7);
 
                 follower.followPath(paths.Path1);
                 pathState = 1;
