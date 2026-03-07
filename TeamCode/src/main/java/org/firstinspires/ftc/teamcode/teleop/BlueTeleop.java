@@ -365,7 +365,7 @@ public class BlueTeleop extends OpMode {
                 pauseColor3 = true;
                 colorPauseEnd3 = timer.milliseconds() + 2500;
             }
-            else { fullCycleRunning = false; cycleMode = 0; }
+            else { fullCycleRunning = false; }
         }
 
 
