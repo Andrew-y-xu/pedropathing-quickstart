@@ -341,8 +341,8 @@ public class BlueTeleop extends OpMode {
             double t = timer.milliseconds() - fullCycleStartTime;
 
             /* Right */
-            if (t < 800) lift2servo.setPosition(0.47); //0.30
-            else if (t < 1000) {
+            if (t < 300) lift2servo.setPosition(0.47); //0.30
+            else if (t < 500) {
                 lift2servo.setPosition(0.98);
                 lastLockedColor2 = "unknown";
                 light2.white();
@@ -350,8 +350,8 @@ public class BlueTeleop extends OpMode {
                 colorPauseEnd2 = timer.milliseconds() + 2500;
             }
             /* Left */
-            else if (t < 300) liftservo.setPosition(0.58); //0.55
-            else if (t < 500) {
+            else if (t < 800) liftservo.setPosition(0.58); //0.55
+            else if (t < 1000) {
                 liftservo.setPosition(0.05);//0.05
                 //lastLockedColor1 = "unknown";
                 light1.white();
