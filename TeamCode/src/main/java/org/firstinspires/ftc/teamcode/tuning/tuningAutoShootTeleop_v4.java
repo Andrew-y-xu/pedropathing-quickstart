@@ -313,10 +313,10 @@ public class tuningAutoShootTeleop_v4 extends OpMode {
             // Right flicker2
             if (t < 300) lift2servo.setPosition(liftservo2UpPosition);
             else if (t < 500) lift2servo.setPosition(liftservo2DownPosition);
-            // Left flicker1
+                // Left flicker1
             else if (t < 800) liftservo.setPosition(liftservoUpPosition);
             else if (t < 1000) liftservo.setPosition(liftservoDownPosition);
-            // Back flicker3
+                // Back flicker3
             else if (t < 1300) lift3servo.setPosition(liftservo3UpPosition);
             else if (t < 1500) lift3servo.setPosition(liftservo3DownPosition);
             else fullCycleRunning = false;
@@ -467,7 +467,7 @@ public class tuningAutoShootTeleop_v4 extends OpMode {
                 limelightTy = fr.getTargetYDegrees();
                 //--- If Red Target
                 if (fr.getFiducialId() == 20) { //Blue
-                //if (fr.getFiducialId() == 24) { //Red
+                    //if (fr.getFiducialId() == 24) { //Red
                     derivativeTx = 1000000000.0 * (limelight_tx - lastTx) / (System.nanoTime() - lastTimeUpdated);
                     poopeemotorey.setPower(pPID * limelight_tx + dPID * derivativeTx); //TxValue
                     doesiseeitfoundboi = true;
