@@ -278,18 +278,30 @@ public class BlueAutoAlternateOrder extends OpMode {
 
         LLResult resultsofpooe = limelight.getLatestResult();
         boolean doesiseeitfoundboi = false;
-
+        double limelight_tx = 0;
+        double limelightTy = 0;
+        double dt = 0;
+        double iPID = 0;
+        double integralPID = 0;
         if (resultsofpooe != null && resultsofpooe.isValid()) {
             List<LLResultTypes.FiducialResult> fiducialResults2 = resultsofpooe.getFiducialResults();
             for (LLResultTypes.FiducialResult fr : fiducialResults2) {
-                double tx = fr.getTargetXDegrees();
-                if(fr.getFiducialId() ==20) {
-                    derivativeTx = 1000000000.0*(tx-lastTx)/(System.nanoTime()-lastTimeUpdated);
-                    turretmotor.setPower(pPID * tx + dPID * derivativeTx); //TxValue
+
+                telemetry.addData("FiducialID", fr.getFiducialId());
+                //--- For Auto Aim ---//
+//                Double TxValue = resultsofpooe.getTx();
+                //--- Get LimeLight Tx
+                limelight_tx = fr.getTargetXDegrees();
+                limelightTy = fr.getTargetYDegrees();
+                //--- If Red Target
+                if (fr.getFiducialId() == 20) {
+                    dt = System.nanoTime() - lastTimeUpdated;
+                    derivativeTx = 1000000000.0 * (limelight_tx - lastTx) / (dt);
+                    integralPID += limelight_tx * dt / 1000000000;
+                    turretmotor.setPower(pPID * limelight_tx + dPID * derivativeTx + iPID * integralPID); //TxValue
                     doesiseeitfoundboi = true;
-                    lastTx = tx;
+                    lastTx = limelight_tx;
                     lastTimeUpdated = System.nanoTime();
-                    break;
                 }
             }
         }
