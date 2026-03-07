@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.teamcode.util.DetectableColor;
+import org.firstinspires.ftc.teamcode.util.ColorRangefinder;
 
 public class ColorDetector {
 
