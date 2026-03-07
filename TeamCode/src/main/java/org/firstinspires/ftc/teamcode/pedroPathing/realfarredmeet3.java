@@ -32,7 +32,7 @@ public class realfarredmeet3 extends OpMode {
     DcMotor turretmotor;
     double lastTx = 0;
     double lastTimeUpdated = 0;
-    double pPID = 0.015; //0.11 --> 0.04 (original value)
+    double pPID = 0.007; //0.11 --> 0.04 (original value)
     double dPID = 0.003; //0.003 --> 0.001 (original value)
     double iPID = 0;
     Servo intake2;
@@ -218,7 +218,7 @@ public class realfarredmeet3 extends OpMode {
         limelight.start();
         follower.setMaxPower(0.95);
         lastTimeUpdated = System.nanoTime();
-        startupDelayStart = System.currentTimeMillis();
+//        startupDelayStart = System.currentTimeMillis();
         flywheel.setDirection(DcMotorSimple.Direction.REVERSE);
         flywheel2.setDirection(DcMotorSimple.Direction.FORWARD);
 
@@ -232,9 +232,9 @@ public class realfarredmeet3 extends OpMode {
 
 
     }
-//    public void start(){
-//        timer.reset();
-//    }
+    public void start(){
+        startupDelayStart=System.currentTimeMillis();
+    }
     public void loop(){
         follower.update();
         flywheel.setPower(0.63);
@@ -285,6 +285,7 @@ public class realfarredmeet3 extends OpMode {
                     doesiseeitfoundboi = true;
                     lastTx = tx;
                     lastTimeUpdated = System.nanoTime();
+                    telemetry.addData("Limelight","Data available");
                     break;
                 }
             }
