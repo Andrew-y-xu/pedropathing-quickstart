@@ -1,33 +1,33 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
-import com.qualcomm.robotcore.hardware.NormalizedRGBA;
-import com.qualcomm.robotcore.hardware.Servo;
-
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
-
-import org.firstinspires.ftc.teamcode.hardware.AutoShooter;
-
-
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
+import com.qualcomm.robotcore.hardware.NormalizedRGBA;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
+//import org.firstinspires.ftc.teamcode.hardware.AutoShooter;
+import org.firstinspires.ftc.teamcode.hardware.AutoShooter_UseVelocity;
+
+import org.firstinspires.ftc.teamcode.util.IndicatorLight;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.firstinspires.ftc.teamcode.util.IndicatorLight;
+@TeleOp(name="Blue Teleop - Set Velocity")
+@Disabled
+public class BlueTeleop_UseVelocity extends OpMode {
 
-@TeleOp(name="Blue Teleop")
-public class BlueTeleop extends OpMode {
-
-    DcMotor testmotor;
-    DcMotor flywheelmotor2;
+    DcMotorEx testmotor;
+    DcMotorEx flywheelmotor2;
     DcMotor intakemotor;
 
     DcMotorEx motor_frontLeft;
@@ -59,7 +59,6 @@ public class BlueTeleop extends OpMode {
     private boolean ltWasPressed = false;
 
 
-
     double pPID = 0.011; //0.11 --> 0.04 (original value)
     double dPID = 0.003; //0.003 --> 0.001 (original value)
     double iPID = 0;
@@ -68,17 +67,33 @@ public class BlueTeleop extends OpMode {
     double lastTimeUpdated = 0;
 
     //--- AutoShoot
-    final AutoShooter autoShoot = new AutoShooter();
     double limelight_tx = 0;
     double limelightTy = 0;
     private boolean aButtonWasPressed = false;
     private boolean bButtonWasPressed = false;
-    double shooterPowerValue = 0;
+
+    double shooterValue = 0;
+    double targetTicksPerSecond = 0;
+    double currentTicksPerSecond = 0;
     double servoPositionValue = 0;
+    static double TICKS_PER_REV = 28.0;
+    static double MAX_RPM = 6000.0;
+    static double SHOOTER_MIN_LIMIT = 0.0; //shooterVelocityMinLimit;
+    static double SHOOTER_MAX_LIMIT = 5800.0; //shooterVelocityMaxLimit;
+
+
+
+
     double servo_value = 0.5;
     String limelightMessage = "No data available";
-    String autoShootMessage = "At Init";
-
+    String autoShootMessage = "Shooter At Init";
+    final AutoShooter_UseVelocity autoShoot = new AutoShooter_UseVelocity(
+                                                            TICKS_PER_REV,
+                                                            MAX_RPM,
+                                                            SHOOTER_MIN_LIMIT,
+                                                            SHOOTER_MAX_LIMIT
+                                                        );
+    //--- End AutoShoot
 
     double deadzone = 0.05;
     private boolean jerkRunning = false;
@@ -110,8 +125,10 @@ public class BlueTeleop extends OpMode {
 
     @Override
     public void init() {
-        testmotor = hardwareMap.dcMotor.get("testemotor");
-        flywheelmotor2 = hardwareMap.dcMotor.get("flywheelmotor2");
+        //testmotor      = hardwareMap.dcMotor.get("testemotor");
+        //flywheelmotor2 = hardwareMap.dcMotor.get("flywheelmotor2");
+        testmotor      = hardwareMap.get(DcMotorEx.class, "testemotor");
+        flywheelmotor2 = hardwareMap.get(DcMotorEx.class, "flywheelmotor2");
 
         motor_frontLeft = hardwareMap.get(DcMotorEx.class, "lf");
         motor_frontRight = hardwareMap.get(DcMotorEx.class, "rf");
@@ -379,61 +396,6 @@ public class BlueTeleop extends OpMode {
             intake2servo.setPosition(0.0);
         }
 
-
-
-///***************************/
-///**** Clamp Servo – gamepad2 RIGHT stick smooth control ***/
-///***************************/
-//
-//// FTC Y stick is inverted
-//        double rightStickInput = -gamepad2.right_stick_y;
-//
-//// Deadzone check
-//        if (Math.abs(rightStickInput) > deadzone) {
-//            double servoRampRate = 0.005; // smaller than motor for precision
-//            clampValue += rightStickInput * servoRampRate;
-//        }
-//
-//// Clamp servo range to [0.25, 0.5]
-//        clampValue = Math.max(0.25, Math.min(clampValue, 0.5));
-//
-//// Apply to servo
-//        aimservo.setPosition(clampValue);
-
-
-        // Clamp value to [0.0, 1.0]
-
-/***************************/
-/**** Dingus Shooter (incremental + presets override) ***/
-/***************************/
-//
-//// --- Incremental step controls (tap) ---
-//        double step = 0.05;
-//
-//// Treat triggers like buttons (press past threshold)
-//        boolean rtPressed = gamepad2.right_trigger > 0.5;
-//        boolean ltPressed = gamepad2.left_trigger  > 0.5;
-//
-//// Rising edge: step only once per press
-//        if (rtPressed && !rtWasPressed) {
-//            value += step;
-//        }
-//        if (ltPressed && !ltWasPressed) {
-//            value -= step;
-//        }
-//
-//// Save states for next loop
-//        rtWasPressed = rtPressed;
-//        ltWasPressed = ltPressed;
-//
-//// --- Presets OVERRIDE incremental ---
-//        if (gamepad2.left_bumper) {
-//            value = 0.70;
-//        } else if (gamepad2.right_bumper) {
-//            value = 0.0;
-//        }
-
-// Clamp AFTER everything, then apply
         value = Math.max(0.0, Math.min(value, 1.0));
 
 
@@ -471,7 +433,7 @@ public class BlueTeleop extends OpMode {
 //                Double TxValue = resultsofpooe.getTx();
                 //--- Get LimeLight Tx
                 limelight_tx = fr.getTargetXDegrees();
-                limelightTy = fr.getTargetYDegrees();
+                limelightTy  = fr.getTargetYDegrees();
                 //--- If Red Target
                 if (fr.getFiducialId() == 20) {
                     derivativeTx = 1000000000.0 * (limelight_tx - lastTx) / (System.nanoTime() - lastTimeUpdated);
@@ -479,36 +441,6 @@ public class BlueTeleop extends OpMode {
                     doesiseeitfoundboi = true;
                     lastTx = limelight_tx;
                     lastTimeUpdated = System.nanoTime();
-                    //break;
-                    //}
-
-                    //--- For Auto Shoot (Auto Shoot depends on Limelight finding the target for distant ---//
-                    //--- Future FlyWheel & Angle On/Off
-                /*
-                if (gamepad2.left_bumper) {
-                    //--- Get LimeLight Ty
-                    double ty = fr.getTargetYDegrees();
-                    //--- Shooter FlyWheel
-                    shooterPowerValue = autoShoot.getFlywheelPower;
-                    testmotor.setPower(shooterPowerValue);
-
-                    //--- Shooter Angle
-                    servoPositionValue = autoShoot.getAnglePosition;
-                    hoodservo.setPosition(servoPositionValue);
-                }
-                */
-
-//                    //--- Get LimeLight Ty
-//                    autoShoot.advancedMathematics(limelightTy);
-//                    //--- Shooter FlyWheel
-//                    shooterPowerValue = autoShoot.getFlywheelPower();  //--- Update Shooter FlyWheel math here, or use new shooter class for object
-//                    testmotor.setPower(shooterPowerValue);
-//                    //--- Shooter Angle
-//                    servoPositionValue = autoShoot.getAnglePosition();  //--- Update Shooter Angle math here, or use new shooter class for object
-//                    hoodservo.setPosition(servoPositionValue);
-//                    break;
-
-
                 }
 
             }
@@ -519,36 +451,16 @@ public class BlueTeleop extends OpMode {
         } else {
             limelightMessage = "Data is available";
         }
-        //telemetry.update();
 
-
-//
-//        else if (gamepad2.back) {
-//            value = -0.2;
-//        } else if (gamepad2.b) {
-//            value = 0.55;
-//        } else if (gamepad2.x) {
-//            value = 0.5;
-//        }
-
-
-//        //conveyer belt
-//        if (gamepad2.y) {
-//            convey.setPosition(1.0);
-//        } else if (gamepad2.start) {
-//            convey.setPosition(0.0);
-//        } else {
-//            convey.setPosition(0.5);
-//        }
         if (autoShoot.isShooterStopped() || !doesiseeitfoundboi) {
 
             if (gamepad2.left_bumper) {
-                testmotor.setPower(0.62);
-                flywheelmotor2.setPower(0.62);
+                testmotor.setVelocity(0.62);
+                flywheelmotor2.setVelocity(0.62);
             }
             if (gamepad2.right_bumper) {
-                testmotor.setPower(0.3);
-                flywheelmotor2.setPower(0.3);
+                testmotor.setVelocity(0.3);
+                flywheelmotor2.setVelocity(0.3);
             }
 
             double turretPower = 0.0; // DEFAULT = stop
@@ -564,10 +476,12 @@ public class BlueTeleop extends OpMode {
 
         } else {
             autoShoot.advancedMathematics(limelightTy);
-            shooterPowerValue = autoShoot.getFlywheelPower();
+            shooterValue = autoShoot.getFlywheelValue();
+
             servoPositionValue = autoShoot.getAnglePosition();
-            testmotor.setPower(shooterPowerValue);
-            flywheelmotor2.setPower(shooterPowerValue);
+            testmotor.setVelocity(shooterValue);
+            flywheelmotor2.setVelocity(shooterValue);
+
             hoodservo.setPosition(servoPositionValue);
         }
         String detected3 = "unknown";
@@ -623,7 +537,7 @@ public class BlueTeleop extends OpMode {
         telemetry.addData("----- Shooter Data -----", null);
         telemetry.addData("AutoShoot: ", autoShootMessage);
         telemetry.addData("AutoShoot Stopped: ", autoShoot.isShooterStopped());
-        telemetry.addData("AutoShoot(FlyWheel Power): ", shooterPowerValue);
+        telemetry.addData("AutoShoot(FlyWheel Value): ", shooterValue);
         telemetry.addData("AutoShoot(Hood Position): ", servoPositionValue);
         telemetry.addData("AutoShoot(a Button): ", gamepad2.a);
         telemetry.addData("AutoShoot(a Button WasPressed): ", aButtonWasPressed);
