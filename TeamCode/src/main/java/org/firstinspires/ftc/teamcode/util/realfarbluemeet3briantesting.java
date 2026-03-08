@@ -35,7 +35,7 @@ public class realfarbluemeet3briantesting extends OpMode {
     double lastTx = 0;
     double lastTimeUpdated = 0;
     double pPID = 0.015; //0.11 --> 0.04 (original value)
-    double dPID = 0.0002; //0.003 --> 0.001 (original value)
+    double dPID = 0.0001; //0.0002 --> //0.003 --> 0.001 (original value)
     double iPID = 0;
     Servo intake2;
 
