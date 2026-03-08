@@ -1,5 +1,8 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
@@ -90,6 +93,7 @@ public class RedTeleop extends OpMode {
     String autoShootMessage = "At Init";
 
 
+
     double deadzone = 0.05;
     private boolean jerkRunning = false;
     private double jerkStartTime = 0;
@@ -106,11 +110,14 @@ public class RedTeleop extends OpMode {
     private static final String INDICATOR3_NAME = "indicator3";
     private static final String INDICATOR2_NAME = "indicator2";
     private static final String INDICATOR1_NAME = "indicator1";
+    Boolean holdup1=false;
+    //left, lift 3
+    Boolean holdup2=false;
+    //right lift 1
 
     private NormalizedColorSensor colorSensor3;
     private NormalizedColorSensor colorSensor2;
     private NormalizedColorSensor colorSensor1;
-    double additionalpower=0;
     private double colorPauseEnd1 = 0;
     private double colorPauseEnd2 = 0;
     private double colorPauseEnd3 = 0;
@@ -125,6 +132,7 @@ public class RedTeleop extends OpMode {
     private String lastLockedColor3 = "unknown";
     private String lastLockedColor2 = "unknown";
     private String lastLockedColor1 = "unknown";
+    double additionalpower=0;
 
     @Override
     public void init() {
@@ -253,9 +261,9 @@ public class RedTeleop extends OpMode {
 
         // Normalize the values so no wheel power exceeds 100%
         // This ensures that the robot maintains the desired motion.
-        double max = Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower));
-        max = Math.max(max, Math.abs(leftBackPower));
-        max = Math.max(max, Math.abs(rightBackPower));
+        double max = max(Math.abs(leftFrontPower), Math.abs(rightFrontPower));
+        max = max(max, Math.abs(leftBackPower));
+        max = max(max, Math.abs(rightBackPower));
 
         if (max > 1.0) {
             leftFrontPower  /= max;
@@ -335,9 +343,22 @@ public class RedTeleop extends OpMode {
 //                debounceTimer.reset();
 //            }
 //        }
-
+        if(gamepad2.left_trigger>0.5){
+            holdup1=true;
+            liftservo.setPosition(1);
+        }
+        else{
+            holdup1=false;
+        }
+        if(gamepad2.right_trigger>0.5){
+            holdup2=true;
+            lift2servo.setPosition(0);
+        }
+        else{
+            holdup2=false;
+        }
         /* Triple flicker action */
-        if (gamepad2.dpad_up && !fullCycleRunning) { fullCycleRunning = true; fullCycleStartTime = timer.milliseconds(); }
+        if (gamepad2.dpad_up && !fullCycleRunning && !holdup1 &&!holdup2) { fullCycleRunning = true; fullCycleStartTime = timer.milliseconds(); }
 
         if (fullCycleRunning) {
             double t = timer.milliseconds() - fullCycleStartTime;
@@ -374,8 +395,8 @@ public class RedTeleop extends OpMode {
 
 
 
-        if (gamepad2.dpad_left  && !cycleRunning) { cycleRunning = true; cycleMode = 1; cycleStartTime = timer.milliseconds(); }
-        if (gamepad2.dpad_right && !cycleRunning) { cycleRunning = true; cycleMode = 2; cycleStartTime = timer.milliseconds(); }
+        if (gamepad2.dpad_left  && !cycleRunning && !holdup1) { cycleRunning = true; cycleMode = 1; cycleStartTime = timer.milliseconds(); }
+        if (gamepad2.dpad_right && !cycleRunning && !holdup2) { cycleRunning = true; cycleMode = 2; cycleStartTime = timer.milliseconds(); }
         if (gamepad2.dpad_down && !cycleRunning) { cycleRunning = true; cycleMode = 3; cycleStartTime = timer.milliseconds(); }
 
         if (cycleRunning) {
@@ -496,7 +517,7 @@ public class RedTeleop extends OpMode {
 //        }
 
 // Clamp AFTER everything, then apply
-        value = Math.max(0.0, Math.min(value, 1.0));
+        value = max(0.0, min(value, 1.0));
 
 
 // Telemetry
@@ -620,6 +641,7 @@ public class RedTeleop extends OpMode {
 //        }
 
         //CHangeing
+
         if (autoShoot.isShooterStopped() || !doesiseeitfoundboi) {
 
             if (gamepad2.left_bumper) {
@@ -646,9 +668,15 @@ public class RedTeleop extends OpMode {
             autoShoot.advancedMathematics(limelightTy);
             shooterPowerValue = autoShoot.getFlywheelPower();
             servoPositionValue = autoShoot.getAnglePosition();
-            testmotor.setPower(shooterPowerValue+additionalpower);
-            flywheelmotor2.setPower(shooterPowerValue+0.0001*timer.seconds());
+            testmotor.setPower(max(0,min(1,shooterPowerValue+additionalpower)));
+            flywheelmotor2.setPower(max(0,min(1,shooterPowerValue+additionalpower)));
             hoodservo.setPosition(servoPositionValue);
+        }
+        if(gamepad1.back||gamepad2.back){
+            additionalpower-=0.01;
+        }
+        if(gamepad1.start||gamepad2.start){
+            additionalpower+=0.01;
         }
 
         //Change
@@ -730,6 +758,9 @@ public class RedTeleop extends OpMode {
         telemetry.addData("AutoShoot(Hood Position): ", servoPositionValue);
         telemetry.addData("AutoShoot(a Button): ", gamepad2.a);
         telemetry.addData("AutoShoot(a Button WasPressed): ", aButtonWasPressed);
+        telemetry.addData("Additional Flywheel Power",additionalpower);
+        telemetry.addData("Holding Left Up",holdup1);
+        telemetry.addData("Holding Right Up",holdup2);
 
 
         telemetry.addData("----- Limelight Data -----", null);
@@ -754,7 +785,7 @@ public class RedTeleop extends OpMode {
         boolean brightEnough = intensity > 0.06;
         boolean notBlownOut = intensity < 2.7;
 
-        double sum = Math.max(1e-6, intensity);
+        double sum = max(1e-6, intensity);
         double rn = r / sum;
         double gn = g / sum;
         double bn = b / sum;
@@ -795,7 +826,7 @@ public class RedTeleop extends OpMode {
         }
     }
     private double clamp01(float v) {
-        return Math.max(0.0, Math.min(1.0, v));
+        return max(0.0, min(1.0, v));
     }
     private boolean ifPressed(boolean button) {
         boolean output = false;
