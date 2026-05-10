@@ -28,7 +28,7 @@ import java.util.List;
 import org.firstinspires.ftc.teamcode.util.DetectableColor;
 import org.firstinspires.ftc.teamcode.util.IndicatorLight;
 
-@TeleOp(name="Red Teleop")
+@TeleOp(name="Red Teleop Old Just In Case")
 public class RedTeleop extends OpMode {
 
     DcMotor testmotor;
