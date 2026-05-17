@@ -1,3 +1,4 @@
+
 package org.firstinspires.ftc.teamcode.teleop;
 
 import com.qualcomm.hardware.limelightvision.LLResult;
@@ -17,6 +18,28 @@ import org.firstinspires.ftc.teamcode.util.IndicatorLight;
 
 import java.util.ArrayList;
 import java.util.List;
+
+// ============================================================
+// SINGLE-GAMEPAD CONTROL MAP
+// ============================================================
+// Left  Stick Y/X  : Drive forward/back + strafe
+// Right Stick X    : Rotate
+// Left  Trigger    : Drive speed boost (analog) + manual turret left
+// Right Trigger    : Drive speed slow  (analog) + manual turret right
+// --
+// Y                : Shooter — field-adjusted mode (hold)
+// B                : Shooter — idle mode (press)
+// A                : Shooter — stop (hold)
+// X                : Intake stop + jerk
+// Right Bumper     : Intake forward
+// Left  Bumper     : Intake reverse
+// --
+// DPad Up          : Start triple shot
+// DPad Left        : Feed ball — left  position
+// DPad Right       : Feed ball — right position
+// DPad Down        : Feed ball — back  position
+// Back             : Cancel triple shot
+// ============================================================
 
 @TeleOp(name="Blue Teleop Western Edge Use This One")
 public class BlueTeleop_GearRatioVelocity extends OpMode {
@@ -51,9 +74,6 @@ public class BlueTeleop_GearRatioVelocity extends OpMode {
     private Limelight3A lookylookyseesee;
     ElapsedTime timer = new ElapsedTime();
 
-    private boolean rtWasPressed = false;
-    private boolean ltWasPressed = false;
-
     double pPID = 0.011;
     double dPID = 0.003;
     double iPID = 0;
@@ -64,8 +84,7 @@ public class BlueTeleop_GearRatioVelocity extends OpMode {
     //--- AutoShoot
     double limelight_tx = 0;
     double limelightTy = 0;
-    private boolean aButtonWasPressed = false;
-    private boolean bButtonWasPressed = false;
+    private boolean leftbumperButtonWasPressed = false;
 
     double servoPositionValue = 0;
 
@@ -81,37 +100,26 @@ public class BlueTeleop_GearRatioVelocity extends OpMode {
     private static final double MOTOR_REV_PER_FLYWHEEL_REV = 1.0;
 
     // Desired shooter speeds as a percentage of max flywheel RPM.
-    // With a 6000 RPM motor and 1:1 gearing:
-    // 0.46 = 2760 flywheel RPM on a 6000 RPM motor with 1:1 gearing.
-    // Lower target lets the flickers release sooner and reduces shot speed.
     private static final double SHOOT_SPEED_PERCENT = 0.41;
     private static final double IDLE_SPEED_PERCENT = 0.15;
 
     // Old field-position speed curve, converted from power percentage to RPM percentage.
-    // The base is lowered from the old power curve so velocity control does not overshoot shot speed.
     private static final double FIELD_SPEED_A = 0.0136112;
     private static final double FIELD_SPEED_B = 0.528231;
     private static final double FIELD_SPEED_OFFSET = 0.00;
     private static final double CLOSE_SHOT_SPEED_PERCENT = 0.43;
     private static final double CLOSE_SHOT_TY_THRESHOLD = 2.5;
 
-    // Computed from motor speed and gear ratio so motor/gearing changes only need edits above.
+    // Computed from motor speed and gear ratio.
     private static final double MAX_FLYWHEEL_RPM = MOTOR_FREE_RPM / MOTOR_REV_PER_FLYWHEEL_REV;
     private static final double SHOOT_FLYWHEEL_RPM = MAX_FLYWHEEL_RPM * SHOOT_SPEED_PERCENT;
     private static final double IDLE_FLYWHEEL_RPM = MAX_FLYWHEEL_RPM * IDLE_SPEED_PERCENT;
 
-    // Ball feed is blocked until both flywheels are close to target and stable.
-    // Tightened from the rapid-fire test values because the first shot was releasing too early.
     private static final double FLYWHEEL_READY_TOLERANCE_RPM = 150.0;
     private static final double SHOOTER_STABLE_TIME_MS = 175.0;
     private static final double TARGET_CHANGE_RESET_RPM = 75.0;
 
-    // Triple-shot should be rapid and guaranteed to finish. The first shot waits for normal
-    // shooterReady(); shots 2 and 3 fire when ready OR after this spacing from the prior shot.
     private static final double RAPID_FIRE_SHOT_SPACING_MS = 575.0;
-
-    // After ball 1, lower the commanded RPM so balls 2 and 3 do not come out hotter.
-    // 0.90 means shots 2/3 use 90% of the normal field-adjusted RPM target.
     private static final double TRIPLE_SHOT_FOLLOWUP_SPEED_SCALE = 0.90;
 
     // Starting PIDF values. Tune these on the robot.
@@ -265,20 +273,15 @@ public class BlueTeleop_GearRatioVelocity extends OpMode {
     @Override
     public void loop() {
         booleanIncrementer = 0;
-        boolean gamePad1yIsPressed = ifPressed(gamepad1.y);
-        boolean gamePad1aIsPressed = ifPressed(gamepad1.a);
-        boolean gamePad1bIsPressed = ifPressed(gamepad1.b);
 
         /***************************/
         /****Drive Train Related ***/
         /***************************/
-        double vx = speed * (-gamepad1.left_stick_y * (1 + gamepad1.left_trigger) * (1 - gamepad1.right_trigger));
+        // Left trigger: analog speed boost (+100% at full press)
+        // Right trigger: analog speed reduction (−100% drive at full press)
+        double vx = speed * (-gamepad1.left_stick_y  * (1 + gamepad1.left_trigger) * (1 - gamepad1.right_trigger));
         double vy = speed * ( gamepad1.left_stick_x  * (1 + gamepad1.left_trigger) * (1 - gamepad1.right_trigger));
         double o  = speed * ( gamepad1.right_stick_x * (1 + gamepad1.left_trigger) * (1 - gamepad1.right_trigger));
-
-        if (gamePad1yIsPressed) speed = 0.7;
-        if (gamePad1bIsPressed) speed = 0.3;
-        if (gamePad1aIsPressed) speed = 1.5;
 
         double leftFrontPower  = vx + vy + o;
         double rightFrontPower = vx - vy - o;
@@ -309,7 +312,8 @@ public class BlueTeleop_GearRatioVelocity extends OpMode {
         /***************************/
         /****Jerk ***/
         /***************************/
-        if (gamepad1.x && !jerkRunning) {
+        // X: intake stop + jerk (same as before)
+        if ((gamepad1.x || gamepad2.x) && !jerkRunning) {
             jerkRunning = true;
             jerkStartTime = jerkTimer.milliseconds();
         }
@@ -332,7 +336,8 @@ public class BlueTeleop_GearRatioVelocity extends OpMode {
         /***************************/
         /**** Lift Cycles ***/
         /***************************/
-        if (gamepad2.dpad_left && !cycleRunning) {
+        // DPad Left/Right/Down: single-shot feeds (require shooter ready)
+        if ((gamepad1.dpad_left || gamepad2.dpad_left) && !cycleRunning) {
             if (shooterReady()) {
                 cycleRunning = true;
                 cycleMode = 1;
@@ -341,7 +346,7 @@ public class BlueTeleop_GearRatioVelocity extends OpMode {
                 autoShootMessage = "WAIT - shooter not at speed";
             }
         }
-        if (gamepad2.dpad_right && !cycleRunning) {
+        if ((gamepad1.dpad_right || gamepad2.dpad_right)&& !cycleRunning) {
             if (shooterReady()) {
                 cycleRunning = true;
                 cycleMode = 2;
@@ -350,7 +355,7 @@ public class BlueTeleop_GearRatioVelocity extends OpMode {
                 autoShootMessage = "WAIT - shooter not at speed";
             }
         }
-        if (gamepad2.dpad_down && !cycleRunning) {
+        if ((gamepad1.dpad_down || gamepad2.dpad_down)&& !cycleRunning) {
             if (shooterReady()) {
                 cycleRunning = true;
                 cycleMode = 3;
@@ -360,7 +365,8 @@ public class BlueTeleop_GearRatioVelocity extends OpMode {
             }
         }
 
-        boolean tripleShotButtonPressed = gamepad2.left_trigger > 0.5;
+        // DPad Up: start triple shot
+        boolean tripleShotButtonPressed = gamepad1.dpad_up;
         if (tripleShotButtonPressed && !tripleShotButtonWasPressed && !tripleShotRunning) {
             tripleShotRunning = true;
             tripleShotIndex = 0;
@@ -370,7 +376,8 @@ public class BlueTeleop_GearRatioVelocity extends OpMode {
         }
         tripleShotButtonWasPressed = tripleShotButtonPressed;
 
-        if (gamepad2.back) {
+        // Back: cancel triple shot
+        if (gamepad1.back|| gamepad2.back) {
             tripleShotRunning = false;
             tripleShotIndex = 0;
             autoShootMessage = "Triple shot cancelled";
@@ -439,15 +446,15 @@ public class BlueTeleop_GearRatioVelocity extends OpMode {
         /***************************/
         /**** Intake ***/
         /***************************/
-        if (gamepad2.b || gamepad1.x) {
-            intakemotor.setPower(0);
-            intake2servo.setPosition(0.5);
-        }
-        if (gamepad2.y || gamepad1.dpad_up) {
+        // X: stop intake (+ jerk, handled above)
+        // Right Bumper: intake forward
+        // Left Bumper:  intake reverse
+        
+        if (gamepad1.y || gamepad2.y) {
             intakemotor.setPower(1.0);
             intake2servo.setPosition(1.0);
         }
-        if (gamepad2.x || gamepad1.right_bumper || gamepad1.left_bumper) {
+        if (gamepad1.x || gamepad2.x) {
             intakemotor.setPower(-1.0);
             intake2servo.setPosition(0.0);
         }
@@ -457,21 +464,19 @@ public class BlueTeleop_GearRatioVelocity extends OpMode {
         /***************************/
         /**** Flywheel Velocity Control ***/
         /***************************/
-
-        if (gamepad2.left_bumper) {
+        // Y: field-adjusted (hold)
+        // B: idle (press, edge-detected)
+        // A: stopped (hold)
+        if (gamepad1.right_bumper || gamepad2.right_bumper) {
             shooterMode = SHOOTER_MODE_FIELD_ADJUSTED;
             autoShootMessage = "Shooter field-adjusted RPM";
-        } else if (gamepad2.a && !aButtonWasPressed) {
+        } else if ((gamepad1.left_bumper || gamepad2.left_bumper) && !leftbumperButtonWasPressed) {
             shooterMode = SHOOTER_MODE_IDLE;
             autoShootMessage = "Shooter idle RPM";
-        } else if (gamepad2.right_bumper) {
-            shooterMode = SHOOTER_MODE_STOPPED;
-            autoShootMessage = "Shooter stopped";
         }
 
-        aButtonWasPressed = gamepad2.a;
-        bButtonWasPressed = gamepad2.right_bumper;
-
+        leftbumperButtonWasPressed = gamepad1.left_bumper;
+        
         /***************************/
         /**** Limelight / Auto Aim ***/
         /***************************/
@@ -529,8 +534,8 @@ public class BlueTeleop_GearRatioVelocity extends OpMode {
         /***************************/
         /**** Apply Turret ***/
         /***************************/
+        // Left/right trigger also drives manual turret when Limelight has no target.
         if (!doesiseeitfoundboi) {
-            // Manual turret control when Limelight does not have the target.
             double turretPower = 0.0;
             if (gamepad1.left_trigger > 0.05) {
                 turretPower =  gamepad1.left_trigger * 0.35;
@@ -615,6 +620,9 @@ public class BlueTeleop_GearRatioVelocity extends OpMode {
         telemetry.addData("LimeLight(ty): ", limelightTy_local);
         telemetry.addData("LimeLight(tx): ", limelight_tx_local);
         telemetry.addData("Timer (s)",       timer.seconds());
+        telemetry.addData("cycleRunning", cycleRunning);
+        telemetry.addData("cycleMode", cycleMode);
+        telemetry.addData("cycle t", timer.milliseconds() - cycleStartTime);
         telemetry.update();
     }
 
@@ -625,7 +633,6 @@ public class BlueTeleop_GearRatioVelocity extends OpMode {
         } else {
             speedPercent = FIELD_SPEED_A * ty + FIELD_SPEED_B + FIELD_SPEED_OFFSET;
         }
-
         return Math.max(0.0, Math.min(1.0, speedPercent));
     }
 
@@ -680,18 +687,12 @@ public class BlueTeleop_GearRatioVelocity extends OpMode {
         lastAppliedTargetFlywheelRpm = targetFlywheelRpm;
 
         double motorTicksPerSecond = flywheelRpmToMotorTicksPerSecond(targetFlywheelRpm);
-
-        // Use raw encoder ticks/sec instead of AngleUnit.DEGREES so this does not depend
-        // on the motor type selected in the Driver Station hardware configuration.
         testmotor.setVelocity(motorTicksPerSecond);
         flywheelmotor2.setVelocity(motorTicksPerSecond);
     }
 
     private double clipFlywheelRpmToMotorLimit(double flywheelRpm) {
-        if (MOTOR_REV_PER_FLYWHEEL_REV <= 0) {
-            return 0.0;
-        }
-
+        if (MOTOR_REV_PER_FLYWHEEL_REV <= 0) return 0.0;
         double maxFlywheelRpm = MOTOR_FREE_RPM / MOTOR_REV_PER_FLYWHEEL_REV;
         return Math.max(0.0, Math.min(flywheelRpm, maxFlywheelRpm));
     }
